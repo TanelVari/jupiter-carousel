@@ -2,3 +2,24 @@
 .carousel-container {
   position: relative;
 }
+
+/* Ensure smooth scrolling and proper aspect ratios */
+.carousel-item {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Hide scrollbars but allow scrolling */
+.carousel-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom focus styles for accessibility */
+button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}

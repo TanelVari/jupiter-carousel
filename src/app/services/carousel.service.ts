@@ -40,12 +40,10 @@ export class CarouselService {
   private convertToCarouselItems(
     processedItems: ProcessedCarouselItem[]
   ): CarouselItem[] {
-    return processedItems.map((item, index) => ({
+    return processedItems.map(item => ({
       id: item.id,
       heading: item.heading,
-      description: '', // No longer available from API
-      imageUrl: item.images.large || item.images.small,
-      isActive: index === 0 // First item is active by default
+      imageUrl: item.images.large || item.images.small
     }))
   }
 
@@ -59,13 +57,6 @@ export class CarouselService {
 
   selectCarousel(carouselId: string): void {
     this.selectedCarouselIdSubject.next(carouselId)
-  }
-
-  setActiveItem(id: string): void {
-    const currentCarouselId = this.selectedCarouselIdSubject.value
-    if (currentCarouselId) {
-      this.apiService.setActiveItem(currentCarouselId, id)
-    }
   }
 
   getLoading(): Observable<boolean> {

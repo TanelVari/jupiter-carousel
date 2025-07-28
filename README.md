@@ -1,5 +1,33 @@
 # Jupiter Carousel
 
+A modern Angular 20 application featuring a horizontally-scrolling carousel component that fetches real content from the ERR Jupiter API.
+
+## Features
+
+- **Angular 20** with TypeScript 5.8 and ESBuild for fast development
+- **Tailwind CSS** for responsive and modern styling
+- **Real API Integration** with ERR Jupiter content API
+- **Horizontal Scrolling Carousel** with:
+  - 7 items displayed at full width
+  - Preview of 8th item for pagination indication
+  - Left/right arrow navigation (both UI buttons and keyboard)
+  - Page-based scrolling (scrolls full page of 7 items)
+  - Responsive design with overflow preview areas
+  - No circular scrolling (finite start/end)
+
+## Carousel Behavior
+
+The carousel displays content in a horizontal scrolling layout:
+
+- **Full Width**: Spans entire screen width
+- **7 Full Items**: Always shows 7 complete items in view
+- **Preview Areas**: Left and right thirds show overflow/preview content
+- **Page Scrolling**: Advances by full pages (7 items at a time)
+- **Navigation**: Arrow buttons + keyboard (left/right arrow keys)
+- **Visual Feedback**: Semi-transparent 8th item indicates more content
+
+## Getting Started
+
 A modern Angular 20 TypeScript application with Tailwind CSS and Prettier configuration.
 
 ## Features

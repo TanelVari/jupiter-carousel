@@ -132,23 +132,6 @@ export class ApiService {
     )
   }
 
-  setActiveItem(carouselId: string, itemId: string): void {
-    const currentCarousels = this.carouselsSubject.value
-    const updatedCarousels = currentCarousels.map(carousel => {
-      if (carousel.id === carouselId) {
-        return {
-          ...carousel,
-          items: carousel.items.map(item => ({
-            ...item,
-            isActive: item.id === itemId
-          }))
-        }
-      }
-      return carousel
-    })
-    this.carouselsSubject.next(updatedCarousels)
-  }
-
   retryLoading(): void {
     this.loadCarousels()
   }
