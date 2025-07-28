@@ -1,6 +1,6 @@
 export interface CarouselItem {
   id: string
-  title: string
+  heading: string
   description: string
   imageUrl: string
   isActive: boolean

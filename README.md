@@ -41,11 +41,13 @@ src/
 ### Installation
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Start the development server (with ESBuild):
+
    ```bash
    npm start
    ```
@@ -55,12 +57,14 @@ src/
 ## What's New in Angular 20
 
 ### Performance Improvements
+
 - **ESBuild integration** - Faster builds and hot reload
 - **Zone.js optimizations** - Event and run coalescing for better performance
 - **Modern bundler** - Improved tree-shaking and code splitting
 - **TypeScript 5.8** - Latest language features and optimizations
 
 ### Development Experience
+
 - **Enhanced type safety** - Stricter TypeScript configuration
 - **Better error messages** - Improved debugging experience
 - **Faster testing** - Optimized test runner configuration
@@ -79,6 +83,7 @@ src/
 ### Code Style
 
 This project uses Prettier with the following configuration:
+
 - No semicolons
 - Single quotes
 - No trailing commas
@@ -88,6 +93,7 @@ This project uses Prettier with the following configuration:
 ### TypeScript Configuration
 
 The project uses strict TypeScript settings:
+
 - Strict mode enabled
 - No implicit any
 - No unused variables
@@ -103,7 +109,7 @@ This project follows an interface-based approach:
 // ✅ Preferred
 export interface CarouselItem {
   id: string
-  title: string
+  heading: string
   description: string
   imageUrl: string
   isActive: boolean
