@@ -17,3 +17,5 @@ Things to keep in mind:
 - Use functional, declarative programming. Avoid classes.
 - There might be exceptions to when to use classes. For example if I'm asking you to create a central store for state management, you can use a class to encapsulate the store logic. I would prefer to use MobX for state management.
 - Avoid using enums. Use maps, plain objects or constants instead.
+- Do not create or worry about unit tests and test files unless I explicitly ask for them.
+- Use the latest Angular features and best practices.
