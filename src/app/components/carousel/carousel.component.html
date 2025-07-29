@@ -58,10 +58,10 @@
     </button>
 
     <!-- Carousel items -->
-    <div class="relative flex h-full items-center overflow-hidden">
+    <div class="relative flex h-full items-center">
       <!-- Carousel ribbon with all items -->
       <div
-        class="flex h-full items-center px-4 md:px-8"
+        class="flex h-full items-center px-4 md:px-8 carousel-ribbon"
         [class.transition-transform]="!isResizing"
         [class.duration-500]="!isResizing"
         [class.ease-in-out]="!isResizing"
@@ -70,7 +70,7 @@
       >
         <div
           *ngFor="let item of visibleItems; let i = index"
-          class="flex-shrink-0"
+          class="flex-shrink-0 carousel-item-wrapper"
           [style.width]="getItemWidth()"
           [class.opacity-40]="getItemOpacity(i)"
         >
@@ -78,12 +78,12 @@
             [href]="item.canonicalUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="relative group cursor-pointer h-full w-full block"
+            class="relative group cursor-pointer block"
             [attr.aria-label]="item.heading"
             [tabindex]="getItemTabIndex(i)"
           >
             <div
-              class="aspect-[2/3] overflow-hidden rounded-sm shadow-2xl bg-gray-800"
+              class="aspect-[2/3] overflow-hidden rounded-sm shadow-2xl bg-gray-800 h-full w-full"
             >
               <img
                 [src]="getImageUrl(item)"
