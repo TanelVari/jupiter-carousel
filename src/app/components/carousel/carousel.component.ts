@@ -133,31 +133,23 @@ export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private calculateItemWidth(): number {
+    // Get the container height in pixels
+    const heightRem = parseFloat(this.getCarouselHeight().replace('rem', ''))
+    const heightPx = heightRem * 16
+
+    // Calculate item width from height maintaining 2:3 aspect ratio
+    // For 2:3 aspect ratio, width = height * (2/3)
+    const itemWidthFromHeight = heightPx * (2 / 3)
+
+    // Also calculate what width would fit based on available space
     const viewportWidth = window.innerWidth
-    const totalPadding = this.containerPadding
+    const availableWidth = viewportWidth - this.containerPadding
+    const totalGapSpace = this.itemGap * (this.itemsPerPage - 1)
+    const widthForItems = availableWidth - totalGapSpace
+    const itemWidthFromSpace = widthForItems / this.itemsPerPage
 
-    // Simple approach: calculate width based on itemsPerPage + space for partial previews
-    // We need to fit: [30% left] + [itemsPerPage full items] + [30% right]
-    // Each partial preview takes 30% of an item width
-
-    const mainItemGaps = this.itemGap * (this.itemsPerPage - 1)
-    let extraSpace = 0
-
-    // Add space for gaps and partial preview items
-    if (this.items.length > this.itemsPerPage) {
-      // Reserve space for potential left and right previews
-      // Each preview: 30% of item width + gap
-      extraSpace = this.itemGap * 2 // gaps for preview items
-      // The partial preview space will be calculated as a fraction of available space
-    }
-
-    const availableWidth =
-      viewportWidth - totalPadding - mainItemGaps - extraSpace
-
-    // Calculate item width accounting for partial previews
-    // Total items to fit: itemsPerPage + 0.3 (left) + 0.3 (right) = itemsPerPage + 0.6
-    const effectiveItemCount = this.itemsPerPage + 0.6
-    return availableWidth / effectiveItemCount
+    // Use the smaller one to ensure everything fits
+    return Math.min(itemWidthFromHeight, itemWidthFromSpace)
   }
 
   private calculateTranslateX(): number {
@@ -355,5 +347,26 @@ export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     return tabbableItems
+  }
+
+  getCarouselHeight(): string {
+    // Calculate height based on viewport width for smooth scaling
+    // This will drive the size, and items will scale within this height
+    const viewportWidth = window.innerWidth
+
+    let heightInRem: number
+
+    if (viewportWidth < 768) {
+      // Small screens: 12-16rem range
+      heightInRem = 12 + (viewportWidth - 320) * 0.01
+    } else {
+      // Large screens: scale continuously based on viewport
+      heightInRem = 16 + (viewportWidth - 768) * 0.008
+    }
+
+    // Reasonable bounds
+    heightInRem = Math.max(12, Math.min(50, heightInRem))
+
+    return `${heightInRem}rem`
   }
 }

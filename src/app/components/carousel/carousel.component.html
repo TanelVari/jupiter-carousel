@@ -8,7 +8,7 @@
   </h3>
 
   <!-- Carousel container -->
-  <div class="relative h-96 mt-4 mb-4">
+  <div class="relative mt-4 mb-4" [style.height]="getCarouselHeight()">
     <!-- Left scroll button -->
     <button
       *ngIf="canScrollLeft"
@@ -71,7 +71,6 @@
         <div
           *ngFor="let item of visibleItems; let i = index"
           class="flex-shrink-0 carousel-item-wrapper"
-          [style.width]="getItemWidth()"
           [class.opacity-40]="getItemOpacity(i)"
         >
           <a
@@ -83,7 +82,8 @@
             [tabindex]="getItemTabIndex(i)"
           >
             <div
-              class="aspect-[2/3] overflow-hidden rounded-sm shadow-2xl bg-gray-800 h-full w-full"
+              class="overflow-hidden rounded-sm shadow-2xl bg-gray-800 h-full"
+              [style.width]="getItemWidth()"
             >
               <img
                 [src]="getImageUrl(item)"
