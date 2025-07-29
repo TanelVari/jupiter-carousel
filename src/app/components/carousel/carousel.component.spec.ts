@@ -256,31 +256,6 @@ describe('CarouselComponent', () => {
     })
   })
 
-  describe('Keyboard Navigation', () => {
-    it('should scroll left on ArrowLeft key', () => {
-      spyOn(component, 'scrollLeft')
-      const event = new KeyboardEvent('keydown', { key: 'ArrowLeft' })
-      component.handleKeyDown(event)
-      expect(component.scrollLeft).toHaveBeenCalled()
-    })
-
-    it('should scroll right on ArrowRight key', () => {
-      spyOn(component, 'scrollRight')
-      const event = new KeyboardEvent('keydown', { key: 'ArrowRight' })
-      component.handleKeyDown(event)
-      expect(component.scrollRight).toHaveBeenCalled()
-    })
-
-    it('should not scroll on other keys', () => {
-      spyOn(component, 'scrollLeft')
-      spyOn(component, 'scrollRight')
-      const event = new KeyboardEvent('keydown', { key: 'Enter' })
-      component.handleKeyDown(event)
-      expect(component.scrollLeft).not.toHaveBeenCalled()
-      expect(component.scrollRight).not.toHaveBeenCalled()
-    })
-  })
-
   describe('Item Display and Opacity', () => {
     beforeEach(() => {
       component.itemsPerPage = 3

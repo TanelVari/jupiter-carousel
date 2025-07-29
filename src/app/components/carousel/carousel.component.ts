@@ -94,15 +94,6 @@ export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
     }, 500) // Adjust timeout as needed
   }
 
-  @HostListener('window:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'ArrowLeft') {
-      this.scrollLeft()
-    } else if (event.key === 'ArrowRight') {
-      this.scrollRight()
-    }
-  }
-
   private updateItemsPerPage(): void {
     const width = window.innerWidth
     if (width < 768) {
