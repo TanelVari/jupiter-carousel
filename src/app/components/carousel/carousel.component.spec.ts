@@ -1,15 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { ChangeDetectorRef } from '@angular/core'
-import { of } from 'rxjs'
 
 import { CarouselComponent } from './carousel.component'
-import { CarouselService } from '../../services/carousel.service'
 import { CarouselItem } from '../../interfaces/carousel.interface'
 
 describe('CarouselComponent', () => {
   let component: CarouselComponent
   let fixture: ComponentFixture<CarouselComponent>
-  let mockCarouselService: jasmine.SpyObj<CarouselService>
   let mockChangeDetector: jasmine.SpyObj<ChangeDetectorRef>
 
   const mockCarouselItems: CarouselItem[] = [
@@ -46,23 +43,21 @@ describe('CarouselComponent', () => {
   ]
 
   beforeEach(async () => {
-    mockCarouselService = jasmine.createSpyObj('CarouselService', ['getItems'])
-    mockCarouselService.getItems.and.returnValue(of(mockCarouselItems))
-
     mockChangeDetector = jasmine.createSpyObj('ChangeDetectorRef', [
       'detectChanges'
     ])
 
     await TestBed.configureTestingModule({
       declarations: [CarouselComponent],
-      providers: [
-        { provide: CarouselService, useValue: mockCarouselService },
-        { provide: ChangeDetectorRef, useValue: mockChangeDetector }
-      ]
+      providers: [{ provide: ChangeDetectorRef, useValue: mockChangeDetector }]
     }).compileComponents()
 
     fixture = TestBed.createComponent(CarouselComponent)
     component = fixture.componentInstance
+
+    // Set up component inputs
+    component.carouselHeader = 'Test Carousel'
+    component.carouselItems = mockCarouselItems
 
     // Mock window.innerWidth
     Object.defineProperty(window, 'innerWidth', {
@@ -91,9 +86,9 @@ describe('CarouselComponent', () => {
       expect(component.itemGap).toBe(8) // 1200px width = 8px gap
     })
 
-    it('should subscribe to carousel items on init', () => {
+    it('should have carousel items from input', () => {
+      component.ngOnInit()
       expect(component.items).toEqual(mockCarouselItems)
-      expect(mockCarouselService.getItems).toHaveBeenCalled()
     })
 
     it('should set carousel header input', () => {

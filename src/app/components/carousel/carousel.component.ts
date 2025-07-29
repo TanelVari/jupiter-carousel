@@ -4,12 +4,12 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
-  Input
+  Input,
+  OnChanges
 } from '@angular/core'
-import { Observable, Subject } from 'rxjs'
-import { takeUntil } from 'rxjs/operators'
+import { Subject } from 'rxjs'
 import { CarouselItem } from '../../interfaces/carousel.interface'
-import { CarouselService } from '../../services/carousel.service'
+import { ProcessedCarouselItem } from '../../interfaces/api.interface'
 
 @Component({
   selector: 'app-carousel',
@@ -17,9 +17,10 @@ import { CarouselService } from '../../services/carousel.service'
   templateUrl: './carousel.component.html',
   styleUrls: ['./carousel.component.css']
 })
-export class CarouselComponent implements OnInit, OnDestroy {
+export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
   @Input() carouselHeader = ''
-  items$: Observable<CarouselItem[]>
+  @Input() carouselItems: ProcessedCarouselItem[] = []
+
   items: CarouselItem[] = []
   anchorItemIndex = 0
   itemsPerPage = 7
@@ -35,25 +36,35 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>()
 
-  constructor(
-    private carouselService: CarouselService,
-    private cdr: ChangeDetectorRef
-  ) {
-    this.items$ = this.carouselService.getItems()
-  }
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.items$.pipe(takeUntil(this.destroy$)).subscribe(items => {
-      this.items = items
-      this.anchorItemIndex = 0 // Reset to first page when items change
-      this.updateCachedValues() // Recalculate cached values
-      this.cdr.detectChanges()
-    })
+    this.convertInputItemsToCarouselItems()
 
     // Set initial items per page based on screen size
     this.updateItemsPerPage()
     this.updateCSSVariables()
     this.updateCachedValues() // Initial calculation
+  }
+
+  ngOnChanges(): void {
+    // Convert input items when they change
+    this.convertInputItemsToCarouselItems()
+    this.anchorItemIndex = 0 // Reset to first page when items change
+    this.updateCachedValues() // Recalculate cached values
+    this.cdr.detectChanges()
+  }
+
+  private convertInputItemsToCarouselItems(): void {
+    this.items = this.carouselItems.map(item => ({
+      id: item.id || '',
+      heading: item.heading || '',
+      canonicalUrl: item.canonicalUrl || '',
+      images: {
+        small: item.images?.small || '',
+        large: item.images?.large || ''
+      }
+    }))
   }
 
   ngOnDestroy(): void {
