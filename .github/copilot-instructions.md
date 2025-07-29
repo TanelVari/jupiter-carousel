@@ -21,5 +21,5 @@ Things to keep in mind:
 - Do not create or worry about unit tests and test files unless I explicitly ask for them.
 - Enforce kebab-case naming for files (e.g., `user-profile.component.ts`) and match Angular's conventions for file suffixes (e.g., `.component.ts`, `.service.ts`, etc.).
 - Use the latest Angular features and best practices.
-- Do not try to start development server with "npm start" or similar commands. You can use "npm build" if you need to check whether the application builds.
+- Do not start development server with "npm start" or similar commands every time you complete a task. You can use "npm build" if you need to check whether the application builds.
 - Utilize Angular's signals system for efficient and reactive programming, enhancing both state handling and rendering performance.
