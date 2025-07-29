@@ -1,6 +1,6 @@
 # Jupiter
 
-An Angular 20 application featuring horizontally-scrolling carousel component that fetches real content from the ERR Jupiter API.
+An Angular 20 application featuring horizontally-scrolling carousel component that fetches real content from the ERR Jupiter API. Live site is available at https://tanelvari.github.io/jupiter-carousel/
 
 ## Getting Started
 
