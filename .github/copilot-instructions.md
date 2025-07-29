@@ -24,3 +24,4 @@ Things to keep in mind:
 - Use the latest Angular features and best practices.
 - Do not start development server with "npm start" or similar commands every time you complete a task. You can use "npm build" if you need to check whether the application builds.
 - Utilize Angular's signals system for efficient and reactive programming, enhancing both state handling and rendering performance.
+- By default when you are asked to run tests or you need to run tests, run them in headless mode.
