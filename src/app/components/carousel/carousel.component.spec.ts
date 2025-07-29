@@ -96,6 +96,15 @@ describe('CarouselComponent', () => {
       expect(component.carouselHeader).toBe('Test Header')
     })
 
+    it('should set carousel index input', () => {
+      component.carouselIndex = 2
+      expect(component.carouselIndex).toBe(2)
+    })
+
+    it('should initialize with default carousel index of 0', () => {
+      expect(component.carouselIndex).toBe(0)
+    })
+
     it('should convert input items to carousel items', () => {
       const mockProcessedItems = [
         {
@@ -728,6 +737,81 @@ describe('CarouselComponent', () => {
         expect(component.getItemTabIndex(1)).toBe(-1)
         expect(component.getItemTabIndex(3)).toBe(-1)
         expect(component.getItemTabIndex(4)).toBe(-1)
+      })
+    })
+
+    describe('Global Tab Index with Carousel Index', () => {
+      it('should calculate correct global tab indices for carousel index 0', () => {
+        component.carouselIndex = 0
+        component.anchorItemIndex = 1 // In the middle - both buttons available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // With anchorItemIndex=1, itemsPerPage=3, items.length=5:
+        // canScrollRight = 1 + 3 < 5 = true (can scroll right)
+        // isLastPage = false
+        // visibleItemsStartIndex = anchorItemIndex = 1
+        // visibleItems = [1, 2, 3]
+
+        // For carousel 0: base = (0 * 10) + 1 = 1
+        expect(component.getLeftButtonTabIndex()).toBe(1) // base = 1
+        expect(component.getItemTabIndex(1)).toBe(2) // base + left offset + indexOf(1 in [1,2,3]) = 1 + 1 + 0 = 2
+        expect(component.getItemTabIndex(2)).toBe(3) // base + left offset + indexOf(2 in [1,2,3]) = 1 + 1 + 1 = 3
+        expect(component.getItemTabIndex(3)).toBe(4) // base + left offset + indexOf(3 in [1,2,3]) = 1 + 1 + 2 = 4
+        expect(component.getRightButtonTabIndex()).toBe(5) // base + left offset + visibleItems.length = 1 + 1 + 3 = 5
+      })
+
+      it('should calculate correct global tab indices for carousel index 1', () => {
+        component.carouselIndex = 1
+        component.anchorItemIndex = 1 // In the middle - both buttons available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 1: base = (1 * 10) + 1 = 11
+        expect(component.getLeftButtonTabIndex()).toBe(11) // base = 11
+        expect(component.getItemTabIndex(1)).toBe(12) // base + left offset + indexOf(1) = 11 + 1 + 0 = 12
+        expect(component.getItemTabIndex(2)).toBe(13) // base + left offset + indexOf(2) = 11 + 1 + 1 = 13
+        expect(component.getItemTabIndex(3)).toBe(14) // base + left offset + indexOf(3) = 11 + 1 + 2 = 14
+        expect(component.getRightButtonTabIndex()).toBe(15) // base + left offset + visible items count = 11 + 1 + 3 = 15
+      })
+
+      it('should calculate correct global tab indices for carousel index 2', () => {
+        component.carouselIndex = 2
+        component.anchorItemIndex = 1 // In the middle - both buttons available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 2: base = (2 * 10) + 1 = 21
+        expect(component.getLeftButtonTabIndex()).toBe(21) // base = 21
+        expect(component.getItemTabIndex(1)).toBe(22) // base + left offset + indexOf(1) = 21 + 1 + 0 = 22
+        expect(component.getItemTabIndex(2)).toBe(23) // base + left offset + indexOf(2) = 21 + 1 + 1 = 23
+        expect(component.getItemTabIndex(3)).toBe(24) // base + left offset + indexOf(3) = 21 + 1 + 2 = 24
+        expect(component.getRightButtonTabIndex()).toBe(25) // base + left offset + visible items count = 21 + 1 + 3 = 25
+      })
+
+      it('should handle carousel index when only right button is available', () => {
+        component.carouselIndex = 1
+        component.anchorItemIndex = 0 // Only right button available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 1: base = (1 * 10) + 1 = 11
+        expect(component.getLeftButtonTabIndex()).toBe(-1) // No left button
+        expect(component.getItemTabIndex(0)).toBe(11) // base + no left offset + item index = 11 + 0 + 0 = 11
+        expect(component.getItemTabIndex(1)).toBe(12) // base + no left offset + item index = 11 + 0 + 1 = 12
+        expect(component.getItemTabIndex(2)).toBe(13) // base + no left offset + item index = 11 + 0 + 2 = 13
+        expect(component.getRightButtonTabIndex()).toBe(14) // base + no left offset + visible items = 11 + 0 + 3 = 14
+      })
+
+      it('should handle carousel index when only left button is available', () => {
+        component.carouselIndex = 2
+        component.anchorItemIndex = 2 // Only left button available (last page)
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 2: base = (2 * 10) + 1 = 21
+        expect(component.getLeftButtonTabIndex()).toBe(21) // base + 0 = 21
+        expect(component.getRightButtonTabIndex()).toBe(-1) // No right button on last page
       })
     })
   })
