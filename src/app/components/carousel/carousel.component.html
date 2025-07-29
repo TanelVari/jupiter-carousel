@@ -51,7 +51,10 @@
     <div class="relative flex h-full items-center overflow-hidden">
       <!-- Single carousel ribbon with all items including previews -->
       <div
-        class="flex transition-transform duration-500 ease-in-out h-full items-center px-4 md:px-8"
+        class="flex h-full items-center px-4 md:px-8"
+        [class.transition-transform]="!isResizing"
+        [class.duration-500]="!isResizing"
+        [class.ease-in-out]="!isResizing"
         [style.gap.px]="itemGap"
         [style.transform]="getCarouselTransform()"
       >

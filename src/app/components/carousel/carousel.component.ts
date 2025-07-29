@@ -28,6 +28,9 @@ export class CarouselComponent implements OnInit, OnDestroy {
   private cachedItemWidth = 0
   private cachedTranslateX = 0
 
+  isResizing = false
+  private resizeTimeout: ReturnType<typeof setTimeout> | undefined
+
   private destroy$ = new Subject<void>()
 
   constructor(
@@ -54,16 +57,27 @@ export class CarouselComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next()
     this.destroy$.complete()
+    if (this.resizeTimeout) {
+      clearTimeout(this.resizeTimeout)
+    }
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(): void {
+    this.isResizing = true
+    clearTimeout(this.resizeTimeout)
+
     // With anchorItemIndex as the source of truth, we just need to recalculate the layout.
     // The anchor item will stay the same, and the translate will be updated for it.
     this.updateItemsPerPage()
     this.updateCSSVariables()
     this.updateCachedValues()
     this.cdr.detectChanges()
+
+    this.resizeTimeout = setTimeout(() => {
+      this.isResizing = false
+      this.cdr.detectChanges() // Trigger change detection to re-apply transition
+    }, 500) // Adjust timeout as needed
   }
 
   @HostListener('window:keydown', ['$event'])
