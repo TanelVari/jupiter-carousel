@@ -14,6 +14,7 @@ Things to keep in mind:
 - Ignore single and double quote errors and warnings.
 - Keep code modular and reusable.
 - Write comments to explain non-obvious code.
+- Avoid using `any`; instead, use TypeScript's type system to define specific types and ensure code reliability and ease of refactoring.
 - Use functional, declarative programming. Avoid classes.
 - There might be exceptions to when to use classes. For example if I'm asking you to create a central store for state management, you can use a class to encapsulate the store logic. Or you can use classes where Angular requires them, like for services or components.
 - Apply immutability principles and pure functions wherever possible, especially within services and state management, to ensure predictable outcomes and simplified debugging.
