@@ -19,7 +19,7 @@ import { CarouselService } from '../../services/carousel.service'
 export class CarouselComponent implements OnInit, OnDestroy {
   items$: Observable<CarouselItem[]>
   items: CarouselItem[] = []
-  currentPage = 0
+  anchorItemIndex = 0
   itemsPerPage = 7
   containerPadding = 64 // px-4 md:px-8 -> 32px on each side on desktop
   itemGap = 12
@@ -40,7 +40,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.items$.pipe(takeUntil(this.destroy$)).subscribe(items => {
       this.items = items
-      this.currentPage = 0 // Reset to first page when items change
+      this.anchorItemIndex = 0 // Reset to first page when items change
       this.updateCachedValues() // Recalculate cached values
       this.cdr.detectChanges()
     })
@@ -48,6 +48,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
     // Set initial items per page based on screen size
     this.updateItemsPerPage()
     this.updateCSSVariables()
+    this.updateCachedValues() // Initial calculation
   }
 
   ngOnDestroy(): void {
@@ -57,9 +58,11 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize', ['$event'])
   onResize(): void {
+    // With anchorItemIndex as the source of truth, we just need to recalculate the layout.
+    // The anchor item will stay the same, and the translate will be updated for it.
     this.updateItemsPerPage()
     this.updateCSSVariables()
-    this.updateCachedValues() // Recalculate cached values on resize
+    this.updateCachedValues()
     this.cdr.detectChanges()
   }
 
@@ -95,9 +98,6 @@ export class CarouselComponent implements OnInit, OnDestroy {
       this.containerPadding = 64
       this.itemGap = 12
     }
-
-    // Recalculate cached values when screen size changes
-    this.updateCachedValues()
   }
 
   private updateCachedValues(): void {
@@ -134,24 +134,19 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   private calculateTranslateX(): number {
-    if (this.currentPage === 0) {
+    if (this.anchorItemIndex === 0) {
       return 0
     }
 
     const itemAndGapWidth = this.cachedItemWidth + this.itemGap
 
     // Standard calculation with left preview offset
-    const baseTranslation =
-      this.currentPage * this.itemsPerPage * itemAndGapWidth
+    const baseTranslation = this.anchorItemIndex * itemAndGapWidth
     const leftPreviewOffset = this.cachedItemWidth * 0.3 + this.itemGap
     const standardTranslation = -(baseTranslation - leftPreviewOffset)
 
-    // Check if we're on the last page and have fewer items than itemsPerPage
-    const isLastPage = this.currentPage === this.totalPages - 1
-    const itemsOnLastPage =
-      this.items.length - this.currentPage * this.itemsPerPage
-
-    if (isLastPage && itemsOnLastPage < this.itemsPerPage) {
+    // Check if we're on the last page (i.e., we can't scroll right)
+    if (!this.canScrollRight) {
       // Calculate the position where the last item would align to the right edge
       const viewportWidth = window.innerWidth
       const rightEdgePosition = viewportWidth - this.containerPadding
@@ -215,96 +210,102 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   getItemOpacity(index: number): boolean {
-    // Special handling for the last page with fewer items
-    const isLastPage = this.currentPage === this.totalPages - 1
-    const currentPageStart = this.currentPage * this.itemsPerPage
-    const actualItemsOnPage = Math.min(
-      this.itemsPerPage,
-      this.items.length - currentPageStart
-    )
+    const isLastPage = !this.canScrollRight
+    let visibleItemsStartIndex = this.anchorItemIndex
 
-    if (isLastPage && actualItemsOnPage < this.itemsPerPage) {
-      // On the last page, we're showing:
-      // - Items from currentPageStart to (items.length - 1) as main items
-      // - One left preview item (if canScrollLeft) which should be dimmed
-
-      const mainItemsStart = currentPageStart
-      const mainItemsEnd = this.items.length - 1
-
-      // Main items (all remaining items) are never dimmed
-      if (index >= mainItemsStart && index <= mainItemsEnd) {
-        return false
-      }
-
-      // Left preview item should be dimmed
-      // Note: Using currentPageStart - 2 due to visual positioning offset
-      const leftPreviewIndex = this.canScrollLeft ? currentPageStart - 2 : -1
-      return index === leftPreviewIndex
-    } else {
-      // Normal page logic
-      const currentPageEnd = currentPageStart + this.itemsPerPage - 1
-
-      // Main items (itemsPerPage count) are never dimmed
-      if (index >= currentPageStart && index <= currentPageEnd) {
-        return false
-      }
-
-      // Left preview item (if exists and we can scroll left)
-      const leftPreviewIndex = this.canScrollLeft ? currentPageStart - 1 : -1
-
-      // Right preview item (if exists and we can scroll right)
-      const rightPreviewIndex = this.canScrollRight ? currentPageEnd + 1 : -1
-
-      // Dim only the valid preview items
-      return index === leftPreviewIndex || index === rightPreviewIndex
+    if (isLastPage) {
+      // On the last page, the visible items are aligned to the end
+      visibleItemsStartIndex = Math.max(
+        0,
+        this.items.length - this.itemsPerPage
+      )
     }
+
+    const visibleItemsEndIndex = visibleItemsStartIndex + this.itemsPerPage - 1
+
+    // Main items are never dimmed
+    if (index >= visibleItemsStartIndex && index <= visibleItemsEndIndex) {
+      return false
+    }
+
+    // Preview items
+    const leftPreviewIndex = this.canScrollLeft
+      ? visibleItemsStartIndex - 1
+      : -1
+    const rightPreviewIndex = this.canScrollRight
+      ? visibleItemsEndIndex + 1
+      : -1
+
+    // Dim only the valid preview items
+    return index === leftPreviewIndex || index === rightPreviewIndex
   }
 
   get leftPreviewItem(): CarouselItem | null {
     if (!this.canScrollLeft) {
       return null
     }
-
-    const startIndex = this.currentPage * this.itemsPerPage
-    return startIndex > 0 ? this.items[startIndex - 1] : null
+    return this.anchorItemIndex > 0
+      ? this.items[this.anchorItemIndex - 1]
+      : null
   }
 
   get rightPreviewItem(): CarouselItem | null {
-    const startIndex = this.currentPage * this.itemsPerPage
-    const endIndex = startIndex + this.itemsPerPage
-
+    const endIndex = this.anchorItemIndex + this.itemsPerPage
     return endIndex < this.items.length ? this.items[endIndex] : null
   }
 
   get canScrollLeft(): boolean {
-    return this.currentPage > 0
+    return this.anchorItemIndex > 0
   }
 
   get canScrollRight(): boolean {
-    return (this.currentPage + 1) * this.itemsPerPage < this.items.length
+    // We can scroll right if the anchor of the NEXT page is valid
+    return this.anchorItemIndex + this.itemsPerPage < this.items.length
   }
 
   get totalPages(): number {
+    if (this.items.length === 0 || this.itemsPerPage === 0) {
+      return 0
+    }
     return Math.ceil(this.items.length / this.itemsPerPage)
+  }
+
+  get currentPage(): number {
+    if (this.itemsPerPage === 0) {
+      return 0
+    }
+    return Math.floor(this.anchorItemIndex / this.itemsPerPage)
   }
 
   scrollLeft(): void {
     if (this.canScrollLeft) {
-      this.currentPage--
+      this.anchorItemIndex = Math.max(
+        0,
+        this.anchorItemIndex - this.itemsPerPage
+      )
       this.updateCachedValues() // Recalculate for smooth transition
     }
   }
 
   scrollRight(): void {
     if (this.canScrollRight) {
-      this.currentPage++
+      // Ensure we don't create an anchor that makes the last item not visible
+      const nextAnchor = this.anchorItemIndex + this.itemsPerPage
+      const maxAnchor = this.items.length - this.itemsPerPage
+      this.anchorItemIndex = Math.min(nextAnchor, maxAnchor)
+
       this.updateCachedValues() // Recalculate for smooth transition
     }
   }
 
   goToPage(pageIndex: number): void {
-    if (pageIndex >= 0 && pageIndex < this.totalPages) {
-      this.currentPage = pageIndex
+    const newAnchor = pageIndex * this.itemsPerPage
+    if (
+      pageIndex >= 0 &&
+      pageIndex < this.totalPages &&
+      newAnchor < this.items.length
+    ) {
+      this.anchorItemIndex = newAnchor
       this.updateCachedValues() // Recalculate for smooth transition
     }
   }
