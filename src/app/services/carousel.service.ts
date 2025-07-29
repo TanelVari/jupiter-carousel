@@ -22,15 +22,19 @@ export class CarouselService {
     this.selectedCarouselIdSubject
   ]).pipe(
     map(([carousels, selectedId]) => {
+      if (!carousels || !Array.isArray(carousels)) {
+        return []
+      }
+
       if (!selectedId && carousels.length > 0) {
         // Auto-select first carousel if none selected
         this.selectedCarouselIdSubject.next(carousels[0].id)
-        return this.convertToCarouselItems(carousels[0].items)
+        return this.convertToCarouselItems(carousels[0].items || [])
       }
 
       const selectedCarousel = carousels.find(c => c.id === selectedId)
       return selectedCarousel
-        ? this.convertToCarouselItems(selectedCarousel.items)
+        ? this.convertToCarouselItems(selectedCarousel.items || [])
         : []
     })
   )
@@ -40,13 +44,17 @@ export class CarouselService {
   private convertToCarouselItems(
     processedItems: ProcessedCarouselItem[]
   ): CarouselItem[] {
+    if (!processedItems || !Array.isArray(processedItems)) {
+      return []
+    }
+
     return processedItems.map(item => ({
-      id: item.id,
-      heading: item.heading,
-      canonicalUrl: item.canonicalUrl,
+      id: item.id || '',
+      heading: item.heading || '',
+      canonicalUrl: item.canonicalUrl || '',
       images: {
-        small: item.images.small,
-        large: item.images.large
+        small: item.images?.small || '',
+        large: item.images?.large || ''
       }
     }))
   }
