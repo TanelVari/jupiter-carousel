@@ -140,14 +140,35 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
     const itemAndGapWidth = this.cachedItemWidth + this.itemGap
 
-    // Calculate the base translation for the page
+    // Standard calculation with left preview offset
     const baseTranslation =
       this.currentPage * this.itemsPerPage * itemAndGapWidth
-
-    // Add offset to show 30% of the previous page's last item
     const leftPreviewOffset = this.cachedItemWidth * 0.3 + this.itemGap
+    const standardTranslation = -(baseTranslation - leftPreviewOffset)
 
-    return -(baseTranslation - leftPreviewOffset)
+    // Check if we're on the last page and have fewer items than itemsPerPage
+    const isLastPage = this.currentPage === this.totalPages - 1
+    const itemsOnLastPage =
+      this.items.length - this.currentPage * this.itemsPerPage
+
+    if (isLastPage && itemsOnLastPage < this.itemsPerPage) {
+      // Calculate the position where the last item would align to the right edge
+      const viewportWidth = window.innerWidth
+      const rightEdgePosition = viewportWidth - this.containerPadding
+
+      // Calculate where the last item ends in the ribbon
+      const lastItemIndex = this.items.length - 1
+      const lastItemEndPosition =
+        (lastItemIndex + 1) * itemAndGapWidth - this.itemGap
+
+      // Calculate translation needed to align last item to right edge
+      const rightAlignTranslation = rightEdgePosition - lastItemEndPosition
+
+      // Use the more restrictive translation (don't scroll too far)
+      return Math.max(standardTranslation, rightAlignTranslation)
+    }
+
+    return standardTranslation
   }
 
   private updateCSSVariables(): void {
@@ -162,8 +183,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   getCarouselTransform(): string {
-    // Update transform when page changes
-    this.cachedTranslateX = this.calculateTranslateX()
+    // Use cached transform value instead of recalculating each time
     return `translateX(${this.cachedTranslateX}px)`
   }
 
@@ -195,28 +215,49 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   getItemOpacity(index: number): boolean {
-    // Calculate which items should be dimmed based on current page
+    // Special handling for the last page with fewer items
+    const isLastPage = this.currentPage === this.totalPages - 1
     const currentPageStart = this.currentPage * this.itemsPerPage
-    const currentPageEnd = currentPageStart + this.itemsPerPage - 1
+    const actualItemsOnPage = Math.min(
+      this.itemsPerPage,
+      this.items.length - currentPageStart
+    )
 
-    // Main items (itemsPerPage count) are never dimmed
-    if (index >= currentPageStart && index <= currentPageEnd) {
-      return false
+    if (isLastPage && actualItemsOnPage < this.itemsPerPage) {
+      // On the last page, we're showing:
+      // - Items from currentPageStart to (items.length - 1) as main items
+      // - One left preview item (if canScrollLeft) which should be dimmed
+
+      const mainItemsStart = currentPageStart
+      const mainItemsEnd = this.items.length - 1
+
+      // Main items (all remaining items) are never dimmed
+      if (index >= mainItemsStart && index <= mainItemsEnd) {
+        return false
+      }
+
+      // Left preview item should be dimmed
+      // Note: Using currentPageStart - 2 due to visual positioning offset
+      const leftPreviewIndex = this.canScrollLeft ? currentPageStart - 2 : -1
+      return index === leftPreviewIndex
+    } else {
+      // Normal page logic
+      const currentPageEnd = currentPageStart + this.itemsPerPage - 1
+
+      // Main items (itemsPerPage count) are never dimmed
+      if (index >= currentPageStart && index <= currentPageEnd) {
+        return false
+      }
+
+      // Left preview item (if exists and we can scroll left)
+      const leftPreviewIndex = this.canScrollLeft ? currentPageStart - 1 : -1
+
+      // Right preview item (if exists and we can scroll right)
+      const rightPreviewIndex = this.canScrollRight ? currentPageEnd + 1 : -1
+
+      // Dim only the valid preview items
+      return index === leftPreviewIndex || index === rightPreviewIndex
     }
-
-    // Left preview item (if exists and we can scroll left)
-    const leftPreviewIndex = this.canScrollLeft ? currentPageStart - 1 : -1
-
-    // Right preview item (if exists and we can scroll right)
-    const rightPreviewIndex = this.canScrollRight ? currentPageEnd + 1 : -1
-
-    // Dim only the preview items
-    if (index === leftPreviewIndex || index === rightPreviewIndex) {
-      return true
-    }
-
-    // All other items are not visible/relevant for current view
-    return false
   }
 
   get leftPreviewItem(): CarouselItem | null {
