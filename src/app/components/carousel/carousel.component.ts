@@ -240,20 +240,6 @@ export class CarouselComponent implements OnInit, OnDestroy {
     return index === leftPreviewIndex || index === rightPreviewIndex
   }
 
-  get leftPreviewItem(): CarouselItem | null {
-    if (!this.canScrollLeft) {
-      return null
-    }
-    return this.anchorItemIndex > 0
-      ? this.items[this.anchorItemIndex - 1]
-      : null
-  }
-
-  get rightPreviewItem(): CarouselItem | null {
-    const endIndex = this.anchorItemIndex + this.itemsPerPage
-    return endIndex < this.items.length ? this.items[endIndex] : null
-  }
-
   get canScrollLeft(): boolean {
     return this.anchorItemIndex > 0
   }
@@ -268,13 +254,6 @@ export class CarouselComponent implements OnInit, OnDestroy {
       return 0
     }
     return Math.ceil(this.items.length / this.itemsPerPage)
-  }
-
-  get currentPage(): number {
-    if (this.itemsPerPage === 0) {
-      return 0
-    }
-    return Math.floor(this.anchorItemIndex / this.itemsPerPage)
   }
 
   scrollLeft(): void {
@@ -294,18 +273,6 @@ export class CarouselComponent implements OnInit, OnDestroy {
       const maxAnchor = this.items.length - this.itemsPerPage
       this.anchorItemIndex = Math.min(nextAnchor, maxAnchor)
 
-      this.updateCachedValues() // Recalculate for smooth transition
-    }
-  }
-
-  goToPage(pageIndex: number): void {
-    const newAnchor = pageIndex * this.itemsPerPage
-    if (
-      pageIndex >= 0 &&
-      pageIndex < this.totalPages &&
-      newAnchor < this.items.length
-    ) {
-      this.anchorItemIndex = newAnchor
       this.updateCachedValues() // Recalculate for smooth transition
     }
   }
