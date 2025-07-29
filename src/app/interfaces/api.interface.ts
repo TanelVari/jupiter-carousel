@@ -1,49 +1,18 @@
-// Photo type interfaces for responsive images
-// TODO: simplify the interface
+// Photo type interfaces for responsive images (simplified to only used properties)
 export interface PhotoType {
-  type: number
-  w: number
-  h: number
   url: string
 }
 
 export interface Photo {
-  id: number
-  ord: number
-  type: number
-  created: number
-  version: number
-  format: string
-  captionEt: string
-  captionEn: string
-  captionRu: string
-  authorEt: string
-  authorEn: string
-  authorRu: string
   photoTypes: Record<string, PhotoType>
-  photoUrlOriginal: string
-  photoUrlBase: string
 }
 
-// Carousel item interface for individual items in the carousel
+// Carousel item interface for individual items in the carousel (simplified to only used properties)
 export interface CarouselItem {
   id: number
   heading: string
-  lead?: string
-  primaryCategoryId: number
-  type: string
-  parentContentPath: string
-  scheduleStart: number
-  subHeading: string
-  hasActiveMedia: boolean
-  rootContentId: number
-  rootCategoryId: number
   canonicalUrl: string
-  fancyUrl: string
-  anotherDomainContent: boolean
-  photos?: Photo[]
   verticalPhotos: Photo[]
-  squarePhotos?: Photo[]
 }
 
 // Carousel section interface

@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core'
 import { BehaviorSubject, Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
 import {
   ApiResponse,
   CarouselSection,
@@ -95,11 +94,16 @@ export class ApiService {
     return validSections.map((section: CarouselSection, index: number) => ({
       id: `carousel-${index}`,
       header: section.header || `Carousel ${index + 1}`,
-      items: section.data.map(item => this.processCarouselItem(item))
+      items: section.data.map((item, index) =>
+        this.processCarouselItem(item, index)
+      )
     }))
   }
 
-  private processCarouselItem(apiItem: any): ProcessedCarouselItem {
+  private processCarouselItem(
+    apiItem: any,
+    index: number
+  ): ProcessedCarouselItem {
     const verticalPhoto = apiItem.verticalPhotos?.[0]
 
     // Extract required image sizes from photoTypes
@@ -109,7 +113,7 @@ export class ApiService {
     }
 
     return {
-      id: apiItem.id.toString(),
+      id: apiItem.id?.toString() || `item-${index}`, // Use actual ID from API, fallback to generated ID
       heading: apiItem.heading || 'Untitled',
       canonicalUrl: apiItem.canonicalUrl || '',
       images
@@ -141,12 +145,6 @@ export class ApiService {
 
   getCarousels(): Observable<ProcessedCarousel[]> {
     return this.carousels$
-  }
-
-  getCarouselById(id: string): Observable<ProcessedCarousel | undefined> {
-    return this.carousels$.pipe(
-      map(carousels => carousels.find(carousel => carousel.id === id))
-    )
   }
 
   retryLoading(): void {

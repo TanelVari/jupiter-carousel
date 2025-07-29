@@ -21,7 +21,7 @@ export class AppComponent implements OnInit, OnDestroy {
       .getCarousels()
       .pipe(takeUntil(this.destroy$))
       .subscribe(carousels => {
-        if (carousels.length > 0) {
+        if (carousels && carousels.length > 0) {
           this.carouselHeader = carousels[0].header
         }
       })
