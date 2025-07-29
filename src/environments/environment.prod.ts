@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.jupiter-carousel.com',
+  apiUrl:
+    'https://services.err.ee/api/v2/category/getByUrl?url=video&domain=jupiter.err.ee',
   enableDebugTools: false,
   logLevel: 'error'
 }

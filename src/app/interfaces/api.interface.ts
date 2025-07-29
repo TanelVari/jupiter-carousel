@@ -1,4 +1,5 @@
 // Photo type interfaces for responsive images
+// TODO: simplify the interface
 export interface PhotoType {
   type: number
   w: number

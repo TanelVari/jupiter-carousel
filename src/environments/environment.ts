@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api',
+  apiUrl: 'assets/sample/jupiter.json',
   enableDebugTools: true,
   logLevel: 'debug'
 }
