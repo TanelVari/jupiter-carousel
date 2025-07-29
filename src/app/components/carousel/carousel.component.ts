@@ -3,7 +3,8 @@ import {
   OnInit,
   HostListener,
   OnDestroy,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  Input
 } from '@angular/core'
 import { Observable, Subject } from 'rxjs'
 import { takeUntil } from 'rxjs/operators'
@@ -17,6 +18,7 @@ import { CarouselService } from '../../services/carousel.service'
   styleUrls: ['./carousel.component.css']
 })
 export class CarouselComponent implements OnInit, OnDestroy {
+  @Input() carouselHeader = ''
   items$: Observable<CarouselItem[]>
   items: CarouselItem[] = []
   anchorItemIndex = 0

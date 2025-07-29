@@ -1,6 +1,14 @@
 <div class="relative w-full overflow-hidden bg-gray-900 min-h-screen">
+  <!-- Carousel header -->
+  <h3
+    *ngIf="carouselHeader"
+    class="text-white text-xl font-bold px-4 md:px-8 pt-6 pb-0"
+  >
+    {{ carouselHeader }}
+  </h3>
+
   <!-- Carousel container -->
-  <div class="relative h-full my-6">
+  <div class="relative h-full mt-2 mb-6">
     <!-- Left scroll button -->
     <button
       *ngIf="canScrollLeft"
@@ -49,7 +57,7 @@
 
     <!-- Carousel items -->
     <div class="relative flex h-full items-center overflow-hidden">
-      <!-- Single carousel ribbon with all items including previews -->
+      <!-- Carousel ribbon with all items -->
       <div
         class="flex h-full items-center px-4 md:px-8"
         [class.transition-transform]="!isResizing"
