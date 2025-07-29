@@ -94,6 +94,7 @@ export class ApiService {
     return {
       id: apiItem.id.toString(),
       heading: apiItem.heading || 'Untitled',
+      canonicalUrl: apiItem.canonicalUrl || '',
       images
     }
   }
@@ -108,7 +109,9 @@ export class ApiService {
           {
             id: 'fallback-1',
             heading: 'Content Unavailable',
+            canonicalUrl: '#',
             images: {
+              // TODO: Replace with actual fallback images
               small:
                 'https://via.placeholder.com/180x270/6B7280/FFFFFF?text=Content+Unavailable',
               large:

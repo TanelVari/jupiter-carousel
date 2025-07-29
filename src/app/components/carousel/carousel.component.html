@@ -56,7 +56,13 @@
         [style.width.%]="14.28"
         [class.opacity-40]="i === 7"
       >
-        <button class="relative group cursor-pointer h-full w-full" [attr.aria-label]="item.heading">
+        <a
+          [href]="item.canonicalUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="relative group cursor-pointer h-full w-full block"
+          [attr.aria-label]="item.heading"
+        >
           <div
             class="aspect-[2/3] overflow-hidden rounded-xl shadow-2xl bg-gray-800"
           >
@@ -67,7 +73,7 @@
               loading="lazy"
             />
           </div>
-        </button>
+        </a>
       </div>
     </div>
   </div>

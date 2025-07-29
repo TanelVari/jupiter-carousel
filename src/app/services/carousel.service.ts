@@ -43,6 +43,7 @@ export class CarouselService {
     return processedItems.map(item => ({
       id: item.id,
       heading: item.heading,
+      canonicalUrl: item.canonicalUrl,
       imageUrl: item.images.large || item.images.small
     }))
   }
