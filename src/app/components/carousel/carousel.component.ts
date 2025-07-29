@@ -110,8 +110,8 @@ export class CarouselComponent implements OnInit, OnDestroy {
     const totalPadding = this.containerPadding
 
     // Simple approach: calculate width based on itemsPerPage + space for partial previews
-    // We need to fit: [partial left] + [itemsPerPage full items] + [partial right]
-    // Let's say each partial preview takes 40% of an item width
+    // We need to fit: [30% left] + [itemsPerPage full items] + [30% right]
+    // Each partial preview takes 30% of an item width
 
     const mainItemGaps = this.itemGap * (this.itemsPerPage - 1)
     let extraSpace = 0
@@ -119,7 +119,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
     // Add space for gaps and partial preview items
     if (this.items.length > this.itemsPerPage) {
       // Reserve space for potential left and right previews
-      // Each preview: 40% of item width + gap
+      // Each preview: 30% of item width + gap
       extraSpace = this.itemGap * 2 // gaps for preview items
       // The partial preview space will be calculated as a fraction of available space
     }
@@ -128,29 +128,26 @@ export class CarouselComponent implements OnInit, OnDestroy {
       viewportWidth - totalPadding - mainItemGaps - extraSpace
 
     // Calculate item width accounting for partial previews
-    // Total items to fit: itemsPerPage + 0.4 (left) + 0.4 (right) = itemsPerPage + 0.8
-    const effectiveItemCount = this.itemsPerPage + 0.8
+    // Total items to fit: itemsPerPage + 0.3 (left) + 0.3 (right) = itemsPerPage + 0.6
+    const effectiveItemCount = this.itemsPerPage + 0.6
     return availableWidth / effectiveItemCount
   }
 
   private calculateTranslateX(): number {
-    // Each page translation should move exactly itemsPerPage items
-    const itemWithGap = this.cachedItemWidth + this.itemGap
-    const pageTranslation = itemWithGap * this.itemsPerPage
-
-    // Base translation: move left by currentPage amount
-    let translateX = -(this.currentPage * pageTranslation)
-
-    // If we can scroll left, shift right to show the left preview item partially
-    if (this.canScrollLeft) {
-      // Show about 40% of the left preview item
-      translateX += this.cachedItemWidth * 0.4
+    if (this.currentPage === 0) {
+      return 0
     }
 
-    // The right preview should automatically be visible due to the container overflow
-    // and the item width calculation already accounts for it
+    const itemAndGapWidth = this.cachedItemWidth + this.itemGap
 
-    return translateX
+    // Calculate the base translation for the page
+    const baseTranslation =
+      this.currentPage * this.itemsPerPage * itemAndGapWidth
+
+    // Add offset to show 30% of the previous page's last item
+    const leftPreviewOffset = this.cachedItemWidth * 0.3 + this.itemGap
+
+    return -(baseTranslation - leftPreviewOffset)
   }
 
   private updateCSSVariables(): void {
