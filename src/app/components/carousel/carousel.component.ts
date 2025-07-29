@@ -133,23 +133,30 @@ export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private calculateItemWidth(): number {
-    // Get the container height in pixels
-    const heightRem = parseFloat(this.getCarouselHeight().replace('rem', ''))
-    const heightPx = heightRem * 16
-
-    // Calculate item width from height maintaining 2:3 aspect ratio
-    // For 2:3 aspect ratio, width = height * (2/3)
-    const itemWidthFromHeight = heightPx * (2 / 3)
-
-    // Also calculate what width would fit based on available space
+    // Calculate what width would fit based on available space
     const viewportWidth = window.innerWidth
     const availableWidth = viewportWidth - this.containerPadding
-    const totalGapSpace = this.itemGap * (this.itemsPerPage - 1)
-    const widthForItems = availableWidth - totalGapSpace
-    const itemWidthFromSpace = widthForItems / this.itemsPerPage
 
-    // Use the smaller one to ensure everything fits
-    return Math.min(itemWidthFromHeight, itemWidthFromSpace)
+    // Account for gaps between main items
+    const mainItemGaps = this.itemGap * (this.itemsPerPage - 1)
+
+    // Reserve space for partial preview items (left and right)
+    let extraSpace = 0
+    if (this.items.length > this.itemsPerPage) {
+      // Reserve space for potential left and right previews
+      // Each preview: gap space
+      extraSpace = this.itemGap * 2 // gaps for preview items
+    }
+
+    // Calculate available width for items
+    const widthForItems = availableWidth - mainItemGaps - extraSpace
+
+    // Calculate item width accounting for partial previews
+    // Total items to fit: itemsPerPage + 0.3 (left) + 0.3 (right) = itemsPerPage + 0.6
+    const effectiveItemCount = this.itemsPerPage + 0.6
+    const itemWidth = widthForItems / effectiveItemCount
+
+    return itemWidth
   }
 
   private calculateTranslateX(): number {
@@ -350,23 +357,19 @@ export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   getCarouselHeight(): string {
-    // Calculate height based on viewport width for smooth scaling
-    // This will drive the size, and items will scale within this height
-    const viewportWidth = window.innerWidth
+    // Calculate height based on the actual item width to ensure perfect fit
+    // This prevents gaps between header and items
+    const itemWidthPx = this.cachedItemWidth || this.calculateItemWidth()
 
-    let heightInRem: number
+    // For 2:3 aspect ratio, height = width * (3/2)
+    const itemHeightPx = itemWidthPx * (3 / 2)
 
-    if (viewportWidth < 768) {
-      // Small screens: 12-16rem range
-      heightInRem = 12 + (viewportWidth - 320) * 0.01
-    } else {
-      // Large screens: scale continuously based on viewport
-      heightInRem = 16 + (viewportWidth - 768) * 0.008
-    }
+    // Convert to rem
+    const heightInRem = itemHeightPx / 16
 
     // Reasonable bounds
-    heightInRem = Math.max(12, Math.min(50, heightInRem))
+    const boundedHeightInRem = Math.max(12, Math.min(50, heightInRem))
 
-    return `${heightInRem}rem`
+    return `${boundedHeightInRem}rem`
   }
 }

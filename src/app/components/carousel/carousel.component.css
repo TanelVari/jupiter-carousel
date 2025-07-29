@@ -36,9 +36,3 @@ a:focus {
   padding-top: 6px;
   padding-bottom: 6px;
 }
-
-/* Adjust the carousel container to account for vertical padding */
-.carousel-ribbon {
-  margin-top: -6px;
-  margin-bottom: -6px;
-}

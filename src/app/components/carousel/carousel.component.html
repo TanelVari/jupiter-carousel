@@ -2,13 +2,13 @@
   <!-- Carousel header -->
   <h3
     *ngIf="carouselHeader"
-    class="text-white text-2xl font-bold px-4 md:px-8 pt-4 pb-4"
+    class="text-white text-2xl font-bold px-4 md:px-8 pt-4 pb-3"
   >
     {{ carouselHeader }}
   </h3>
 
   <!-- Carousel container -->
-  <div class="relative mt-4 mb-4" [style.height]="getCarouselHeight()">
+  <div class="relative mb-4" [style.height]="getCarouselHeight()">
     <!-- Left scroll button -->
     <button
       *ngIf="canScrollLeft"
