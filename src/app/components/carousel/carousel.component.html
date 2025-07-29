@@ -46,35 +46,41 @@
     </button>
 
     <!-- Carousel items -->
-    <div
-      class="flex transition-all duration-500 ease-in-out h-full items-center px-4 md:px-8"
-      [style.gap.px]="itemGap / (itemsPerPage - 1)"
-    >
+    <div class="relative flex h-full items-center overflow-hidden">
+      <!-- Single carousel ribbon with all items including previews -->
       <div
-        *ngFor="let item of visibleItems; let i = index"
-        class="flex-shrink-0"
-        [style.width]="getItemWidth()"
-        [class.opacity-40]="i >= itemsPerPage"
+        class="flex transition-all duration-500 ease-in-out h-full items-center px-4 md:px-8"
+        [style.gap.px]="itemGap / (itemsPerPage - 1)"
+        [style.margin-left]="
+          canScrollLeft ? 'calc(-' + getItemWidth() + ' * 0.6)' : '0'
+        "
       >
-        <a
-          [href]="item.canonicalUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="relative group cursor-pointer h-full w-full block"
-          [attr.aria-label]="item.heading"
+        <div
+          *ngFor="let item of visibleItems; let i = index"
+          class="flex-shrink-0"
+          [style.width]="getItemWidth()"
+          [class.opacity-40]="getItemOpacity(i)"
         >
-          <div
-            class="aspect-[2/3] overflow-hidden rounded-sm shadow-2xl bg-gray-800"
+          <a
+            [href]="item.canonicalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="relative group cursor-pointer h-full w-full block"
+            [attr.aria-label]="item.heading"
           >
-            <img
-              [src]="getImageUrl(item)"
-              [alt]="item.heading"
-              [sizes]="getImageSizes()"
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              loading="lazy"
-            />
-          </div>
-        </a>
+            <div
+              class="aspect-[2/3] overflow-hidden rounded-sm shadow-2xl bg-gray-800"
+            >
+              <img
+                [src]="getImageUrl(item)"
+                [alt]="item.heading"
+                [sizes]="getImageSizes()"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                loading="lazy"
+              />
+            </div>
+          </a>
+        </div>
       </div>
     </div>
   </div>

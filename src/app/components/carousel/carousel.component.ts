@@ -99,7 +99,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   getItemWidth(): string {
-    // Calculate item width dynamically
+    // Simple calculation without complex preview item accounting
     const viewportWidth = window.innerWidth
     const totalPadding = this.containerPadding
     const totalGaps = this.itemGap * (this.itemsPerPage - 1)
@@ -134,14 +134,57 @@ export class CarouselComponent implements OnInit, OnDestroy {
   get visibleItems(): CarouselItem[] {
     const startIndex = this.currentPage * this.itemsPerPage
     const endIndex = startIndex + this.itemsPerPage
-    const visible = this.items.slice(startIndex, endIndex)
+    let items: CarouselItem[] = []
 
-    // Add preview item if there are more items to the right
-    if (endIndex < this.items.length) {
-      visible.push(this.items[endIndex])
+    // Add left preview item if available (part of the ribbon)
+    if (this.canScrollLeft && startIndex > 0) {
+      items.push(this.items[startIndex - 1])
     }
 
-    return visible
+    // Add main page items
+    items = items.concat(this.items.slice(startIndex, endIndex))
+
+    // Add right preview item if available (part of the ribbon)
+    if (endIndex < this.items.length) {
+      items.push(this.items[endIndex])
+    }
+
+    return items
+  }
+
+  getItemOpacity(index: number): boolean {
+    const hasLeftPreview = this.canScrollLeft
+    const hasRightPreview =
+      (this.currentPage + 1) * this.itemsPerPage < this.items.length
+
+    // First item is dimmed if it's a left preview
+    if (hasLeftPreview && index === 0) {
+      return true
+    }
+
+    // Last item is dimmed if it's a right preview
+    const totalItems = this.visibleItems.length
+    if (hasRightPreview && index === totalItems - 1) {
+      return true
+    }
+
+    return false
+  }
+
+  get leftPreviewItem(): CarouselItem | null {
+    if (!this.canScrollLeft) {
+      return null
+    }
+
+    const startIndex = this.currentPage * this.itemsPerPage
+    return startIndex > 0 ? this.items[startIndex - 1] : null
+  }
+
+  get rightPreviewItem(): CarouselItem | null {
+    const startIndex = this.currentPage * this.itemsPerPage
+    const endIndex = startIndex + this.itemsPerPage
+
+    return endIndex < this.items.length ? this.items[endIndex] : null
   }
 
   get canScrollLeft(): boolean {
