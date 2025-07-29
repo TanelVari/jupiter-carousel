@@ -292,4 +292,57 @@ export class CarouselComponent implements OnInit, OnDestroy {
       this.updateCachedValues() // Recalculate for smooth transition
     }
   }
+
+  // Tab navigation helpers
+  getLeftButtonTabIndex(): number {
+    // Left button gets tabindex 1 when it exists (first in tab order)
+    return this.canScrollLeft ? 1 : -1
+  }
+
+  getRightButtonTabIndex(): number {
+    // Right button gets tabindex based on how many items are tabbable
+    const visibleTabbableItems = this.getVisibleTabbableItems().length
+    const baseIndex = this.canScrollLeft ? 2 : 1 // Start after left button if it exists
+    return this.canScrollRight ? baseIndex + visibleTabbableItems : -1
+  }
+
+  getItemTabIndex(itemIndex: number): number {
+    // Only visible (non-dimmed) items should be tabbable
+    const visibleTabbableItems = this.getVisibleTabbableItems()
+    const itemIndexInTabbable = visibleTabbableItems.indexOf(itemIndex)
+
+    if (itemIndexInTabbable === -1) {
+      return -1 // Item is not tabbable (dimmed/preview item)
+    }
+
+    const baseIndex = this.canScrollLeft ? 2 : 1 // Start after left button if it exists
+    return baseIndex + itemIndexInTabbable
+  }
+
+  private getVisibleTabbableItems(): number[] {
+    const isLastPage = !this.canScrollRight
+    let visibleItemsStartIndex = this.anchorItemIndex
+
+    if (isLastPage) {
+      // On the last page, the visible items are aligned to the end
+      visibleItemsStartIndex = Math.max(
+        0,
+        this.items.length - this.itemsPerPage
+      )
+    }
+
+    const visibleItemsEndIndex = visibleItemsStartIndex + this.itemsPerPage - 1
+
+    // Return indices of main visible items (not dimmed preview items)
+    const tabbableItems: number[] = []
+    for (
+      let i = visibleItemsStartIndex;
+      i <= visibleItemsEndIndex && i < this.items.length;
+      i++
+    ) {
+      tabbableItems.push(i)
+    }
+
+    return tabbableItems
+  }
 }

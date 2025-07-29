@@ -436,4 +436,221 @@ describe('CarouselComponent', () => {
       expect(component.carouselHeader).toBe('Test Carousel')
     })
   })
+
+  describe('Tab Navigation', () => {
+    beforeEach(() => {
+      component.items = mockCarouselItems // 5 items total
+      component.itemsPerPage = 3
+    })
+
+    describe('Left Button Tab Index', () => {
+      it('should return 1 when left scroll is available', () => {
+        component.anchorItemIndex = 1 // Not at the beginning
+
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+      })
+
+      it('should return -1 when left scroll is not available', () => {
+        component.anchorItemIndex = 0 // At the beginning
+
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+      })
+    })
+
+    describe('Right Button Tab Index', () => {
+      it('should return correct index when both buttons are present', () => {
+        component.anchorItemIndex = 1 // In the middle, both buttons available
+
+        const visibleItems = (component as any).getVisibleTabbableItems().length
+        const expectedIndex = 1 + visibleItems + 1 // left button + items + 1 for right button index
+        expect(component.getRightButtonTabIndex()).toBe(expectedIndex)
+      })
+
+      it('should return correct index when only right button is present', () => {
+        component.anchorItemIndex = 0 // At beginning, only right button
+
+        const visibleItems = (component as any).getVisibleTabbableItems().length
+        const expectedIndex = visibleItems + 1 // no left button + items + 1 for right button index
+        expect(component.getRightButtonTabIndex()).toBe(expectedIndex)
+      })
+
+      it('should return -1 when right scroll is not available', () => {
+        component.anchorItemIndex = 2 // At the end (5 items, 3 per page, index 2 = last page)
+
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+      })
+    })
+
+    describe('Item Tab Index', () => {
+      it('should return correct tab indices for visible items on first page', () => {
+        component.anchorItemIndex = 0 // First page, left button not present
+
+        // Items 0, 1, 2 should be tabbable with indices 1, 2, 3
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+      })
+
+      it('should return correct tab indices when left button is present', () => {
+        component.anchorItemIndex = 1 // Middle page, left button present
+
+        // Items 1, 2, 3 should be tabbable with indices 2, 3, 4 (after left button)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+        expect(component.getItemTabIndex(3)).toBe(4)
+      })
+
+      it('should return -1 for non-visible items', () => {
+        component.anchorItemIndex = 0 // First page
+
+        // Items 3+ should not be tabbable
+        expect(component.getItemTabIndex(3)).toBe(-1)
+        expect(component.getItemTabIndex(4)).toBe(-1)
+      })
+
+      it('should handle last page correctly', () => {
+        component.anchorItemIndex = 2 // Last page (items 2, 3, 4)
+
+        // Last 3 items should be tabbable
+        expect(component.getItemTabIndex(2)).toBe(2) // After left button
+        expect(component.getItemTabIndex(3)).toBe(3)
+        expect(component.getItemTabIndex(4)).toBe(4)
+      })
+    })
+
+    describe('Visible Tabbable Items', () => {
+      it('should return correct visible items for first page', () => {
+        component.anchorItemIndex = 0
+
+        const tabbableItems = (component as any).getVisibleTabbableItems()
+        expect(tabbableItems).toEqual([0, 1, 2])
+      })
+
+      it('should return correct visible items for middle page', () => {
+        component.anchorItemIndex = 1
+
+        const tabbableItems = (component as any).getVisibleTabbableItems()
+        expect(tabbableItems).toEqual([1, 2, 3])
+      })
+
+      it('should return correct visible items for last page', () => {
+        component.anchorItemIndex = 2 // Last possible anchor for 5 items with 3 per page
+
+        const tabbableItems = (component as any).getVisibleTabbableItems()
+        expect(tabbableItems).toEqual([2, 3, 4])
+      })
+    })
+
+    describe('Tab Navigation Integration', () => {
+      it('should maintain tab order when scrolling right', () => {
+        component.anchorItemIndex = 0 // First page
+
+        // Initial state: no left button, items 0,1,2 tabbable, right button at index 4
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+        expect(component.getRightButtonTabIndex()).toBe(4)
+
+        // Scroll right
+        component.scrollRight()
+
+        // After scrolling: nextAnchor = 0 + 3 = 3, maxAnchor = 5 - 3 = 2, so anchor becomes min(3, 2) = 2
+        // This means items 2,3,4 are visible, and canScrollRight becomes false
+        expect(component.anchorItemIndex).toBe(2)
+        expect(component.canScrollRight).toBe(false)
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+        expect(component.getItemTabIndex(2)).toBe(2)
+        expect(component.getItemTabIndex(3)).toBe(3)
+        expect(component.getItemTabIndex(4)).toBe(4)
+        expect(component.getRightButtonTabIndex()).toBe(-1) // No more pages to scroll
+      })
+
+      it('should maintain tab order when scrolling left', () => {
+        component.anchorItemIndex = 2 // Last page (with 5 items and 3 per page)
+
+        // Initial state: left button at 1, items 2,3,4 tabbable, no right button
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+        expect(component.getItemTabIndex(2)).toBe(2)
+        expect(component.getItemTabIndex(3)).toBe(3)
+        expect(component.getItemTabIndex(4)).toBe(4)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+
+        // Scroll left: anchor becomes max(0, 2-3) = 0
+        component.scrollLeft()
+
+        expect(component.anchorItemIndex).toBe(0)
+        expect(component.getLeftButtonTabIndex()).toBe(-1) // Back to first page
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+        expect(component.getRightButtonTabIndex()).toBe(4) // Can scroll right again
+      })
+
+      it('should handle single page scenario correctly', () => {
+        // Test with fewer items than itemsPerPage
+        component.items = mockCarouselItems.slice(0, 2) // Only 2 items
+        component.itemsPerPage = 3
+        component.anchorItemIndex = 0
+
+        // No scroll buttons should be present, only items tabbable
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+      })
+
+      it('should handle exact page size scenario', () => {
+        // Test with exactly itemsPerPage items
+        component.items = mockCarouselItems.slice(0, 3) // Exactly 3 items
+        component.itemsPerPage = 3
+        component.anchorItemIndex = 0
+
+        // No scroll buttons should be present
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+      })
+    })
+
+    describe('Tab Navigation Edge Cases', () => {
+      it('should handle empty items array', () => {
+        component.items = []
+        component.itemsPerPage = 3
+
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(-1)
+      })
+
+      it('should handle single item', () => {
+        component.items = [mockCarouselItems[0]]
+        component.itemsPerPage = 3
+        component.anchorItemIndex = 0
+
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+      })
+
+      it('should handle itemsPerPage = 1', () => {
+        component.items = mockCarouselItems // 5 items
+        component.itemsPerPage = 1
+        component.anchorItemIndex = 2 // Middle item
+
+        // Should have both buttons and only one item tabbable
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+        expect(component.getItemTabIndex(2)).toBe(2)
+        expect(component.getRightButtonTabIndex()).toBe(3)
+
+        // Other items should not be tabbable
+        expect(component.getItemTabIndex(0)).toBe(-1)
+        expect(component.getItemTabIndex(1)).toBe(-1)
+        expect(component.getItemTabIndex(3)).toBe(-1)
+        expect(component.getItemTabIndex(4)).toBe(-1)
+      })
+    })
+  })
 })
