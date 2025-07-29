@@ -19,3 +19,4 @@ Things to keep in mind:
 - Avoid using enums. Use maps, plain objects or constants instead.
 - Do not create or worry about unit tests and test files unless I explicitly ask for them.
 - Use the latest Angular features and best practices.
+- Do not try to start development server with "npm start" or similar commands. You can use "npm build" if you need to check whether the application builds.
