@@ -22,7 +22,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   currentPage = 0
   itemsPerPage = 7
   containerPadding = 64 // px-4 md:px-8 -> 32px on each side on desktop
-  itemGap = 24
+  itemGap = 12
 
   // Cache calculations to prevent jumpy behavior
   private cachedItemWidth = 0
@@ -77,23 +77,23 @@ export class CarouselComponent implements OnInit, OnDestroy {
     if (width < 768) {
       this.itemsPerPage = 2
       this.containerPadding = 32 // px-4 -> 16px on each side
-      this.itemGap = 12
+      this.itemGap = 4
     } else if (width < 960) {
       this.itemsPerPage = 3
       this.containerPadding = 64 // px-8 -> 32px on each side
-      this.itemGap = 16
+      this.itemGap = 8
     } else if (width < 1280) {
       this.itemsPerPage = 4
       this.containerPadding = 64
-      this.itemGap = 20
+      this.itemGap = 8
     } else if (width < 1920) {
       this.itemsPerPage = 6
       this.containerPadding = 64
-      this.itemGap = 24
+      this.itemGap = 12
     } else {
       this.itemsPerPage = 7
       this.containerPadding = 64
-      this.itemGap = 24
+      this.itemGap = 12
     }
 
     // Recalculate cached values when screen size changes
