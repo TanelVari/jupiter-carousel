@@ -113,7 +113,7 @@ export class ApiService {
     }
 
     return {
-      id: `item-${index}`, // Generate ID from index since we removed id from CarouselItem
+      id: apiItem.id?.toString() || `item-${index}`, // Use actual ID from API, fallback to generated ID
       heading: apiItem.heading || 'Untitled',
       canonicalUrl: apiItem.canonicalUrl || '',
       images

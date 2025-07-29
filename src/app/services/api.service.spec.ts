@@ -31,6 +31,7 @@ describe('ApiService', () => {
             },
             data: [
               {
+                id: 1,
                 heading: 'Test Item 1',
                 canonicalUrl: 'https://example.com/item1',
                 verticalPhotos: [
@@ -47,6 +48,7 @@ describe('ApiService', () => {
                 ]
               },
               {
+                id: 2,
                 heading: 'Test Item 2',
                 canonicalUrl: 'https://example.com/item2',
                 verticalPhotos: [
@@ -75,6 +77,7 @@ describe('ApiService', () => {
             },
             data: [
               {
+                id: 3,
                 heading: 'Filtered Item',
                 canonicalUrl: 'https://example.com/filtered',
                 verticalPhotos: []
@@ -92,7 +95,7 @@ describe('ApiService', () => {
       header: 'Test Carousel 1',
       items: [
         {
-          id: 'item-0',
+          id: '1', // Now using actual API IDs
           heading: 'Test Item 1',
           canonicalUrl: 'https://example.com/item1',
           images: {
@@ -101,7 +104,7 @@ describe('ApiService', () => {
           }
         },
         {
-          id: 'item-1',
+          id: '2', // Now using actual API IDs
           heading: 'Test Item 2',
           canonicalUrl: 'https://example.com/item2',
           images: {
@@ -357,6 +360,7 @@ describe('ApiService', () => {
               },
               data: [
                 {
+                  id: 4,
                   heading: 'Item Without Photos',
                   canonicalUrl: 'https://example.com/no-photos',
                   verticalPhotos: [] // Empty photos array
@@ -406,6 +410,7 @@ describe('ApiService', () => {
               },
               data: [
                 {
+                  id: 5,
                   heading: '', // Empty heading
                   canonicalUrl: '',
                   verticalPhotos: []
@@ -451,6 +456,7 @@ describe('ApiService', () => {
               manual: { highTimeline: true, banner: false },
               data: [
                 {
+                  id: 6,
                   heading: 'Visible Item',
                   canonicalUrl: 'https://example.com/visible',
                   verticalPhotos: []
@@ -465,6 +471,7 @@ describe('ApiService', () => {
               manual: { highTimeline: false, banner: false },
               data: [
                 {
+                  id: 7,
                   heading: 'Hidden Item',
                   canonicalUrl: 'https://example.com/hidden',
                   verticalPhotos: []
