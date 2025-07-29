@@ -95,6 +95,45 @@ describe('CarouselComponent', () => {
       component.carouselHeader = 'Test Header'
       expect(component.carouselHeader).toBe('Test Header')
     })
+
+    it('should convert input items to carousel items', () => {
+      const mockProcessedItems = [
+        {
+          id: '1',
+          heading: 'Processed Item 1',
+          canonicalUrl: 'https://example.com/1',
+          images: {
+            small: 'photo1_small.jpg',
+            large: 'photo1_large.jpg'
+          }
+        }
+      ]
+
+      component.carouselItems = mockProcessedItems
+      component['convertInputItemsToCarouselItems']()
+
+      expect(component.items.length).toBe(1)
+      expect(component.items[0].id).toBe('1')
+      expect(component.items[0].heading).toBe('Processed Item 1')
+      expect(component.items[0].canonicalUrl).toBe('https://example.com/1')
+      expect(component.items[0].images.small).toBe('photo1_small.jpg')
+      expect(component.items[0].images.large).toBe('photo1_large.jpg')
+    })
+
+    it('should handle empty carousel items input', () => {
+      component.carouselItems = []
+      component['convertInputItemsToCarouselItems']()
+
+      expect(component.items).toEqual([])
+    })
+
+    it('should call convertInputItemsToCarouselItems on ngOnChanges', () => {
+      spyOn(component as any, 'convertInputItemsToCarouselItems')
+
+      component.ngOnChanges()
+
+      expect(component['convertInputItemsToCarouselItems']).toHaveBeenCalled()
+    })
   })
 
   describe('Responsive Behavior', () => {
@@ -309,6 +348,50 @@ describe('CarouselComponent', () => {
         '--item-gap',
         '8px' // Expected 8px based on component's current itemGap
       )
+    })
+
+    it('should calculate carousel height based on item width', () => {
+      // Use the existing spy from beforeEach and configure its return value
+      ;(component as any)['calculateItemWidth'].and.returnValue(200)
+      component['updateCachedValues']()
+
+      const height = component.getCarouselHeight()
+
+      // For 2:3 aspect ratio, height = width * (3/2)
+      // 200px * 1.5 = 300px = 18.75rem
+      expect(height).toBe('18.75rem')
+    })
+
+    it('should respect minimum height bounds', () => {
+      // Use the existing spy and configure for very small item width
+      ;(component as any)['calculateItemWidth'].and.returnValue(50)
+      component['updateCachedValues']()
+
+      const height = component.getCarouselHeight()
+
+      // Should be clamped to minimum 12rem
+      expect(height).toBe('12rem')
+    })
+
+    it('should respect maximum height bounds', () => {
+      // Use the existing spy and configure for very large item width
+      ;(component as any)['calculateItemWidth'].and.returnValue(1000)
+      component['updateCachedValues']()
+
+      const height = component.getCarouselHeight()
+
+      // Should be clamped to maximum 50rem
+      expect(height).toBe('50rem')
+    })
+
+    it('should handle cached item width correctly', () => {
+      // Set cached width directly (bypassing the spy)
+      component['cachedItemWidth'] = 240
+
+      const height = component.getCarouselHeight()
+
+      // 240px * 1.5 = 360px = 22.5rem
+      expect(height).toBe('22.5rem')
     })
   })
 
