@@ -15,8 +15,11 @@ Things to keep in mind:
 - Keep code modular and reusable.
 - Write comments to explain non-obvious code.
 - Use functional, declarative programming. Avoid classes.
-- There might be exceptions to when to use classes. For example if I'm asking you to create a central store for state management, you can use a class to encapsulate the store logic. I would prefer to use MobX for state management.
+- There might be exceptions to when to use classes. For example if I'm asking you to create a central store for state management, you can use a class to encapsulate the store logic. Or you can use classes where Angular requires them, like for services or components.
+- Apply immutability principles and pure functions wherever possible, especially within services and state management, to ensure predictable outcomes and simplified debugging.
 - Avoid using enums. Use maps, plain objects or constants instead.
 - Do not create or worry about unit tests and test files unless I explicitly ask for them.
+- Enforce kebab-case naming for files (e.g., `user-profile.component.ts`) and match Angular's conventions for file suffixes (e.g., `.component.ts`, `.service.ts`, etc.).
 - Use the latest Angular features and best practices.
 - Do not try to start development server with "npm start" or similar commands. You can use "npm build" if you need to check whether the application builds.
+- Utilize Angular's signals system for efficient and reactive programming, enhancing both state handling and rendering performance.
