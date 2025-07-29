@@ -1,6 +1,10 @@
-<div class="min-h-screen bg-gray-900">
+<div class="min-h-screen h-full bg-gray-900 pb-0">
   <!-- Multiple Carousel Components - one for each carousel section -->
-  <div *ngFor="let carousel of carousels; let i = index" class="w-full mb-4">
+  <div
+    *ngFor="let carousel of carousels; let i = index; let last = last"
+    class="w-full"
+    [class.mb-4]="!last"
+  >
     <app-carousel
       [carouselHeader]="carousel.header"
       [carouselItems]="carousel.items"
