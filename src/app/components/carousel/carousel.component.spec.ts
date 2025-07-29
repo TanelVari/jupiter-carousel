@@ -1,15 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { ChangeDetectorRef } from '@angular/core'
-import { of } from 'rxjs'
 
 import { CarouselComponent } from './carousel.component'
-import { CarouselService } from '../../services/carousel.service'
 import { CarouselItem } from '../../interfaces/carousel.interface'
 
 describe('CarouselComponent', () => {
   let component: CarouselComponent
   let fixture: ComponentFixture<CarouselComponent>
-  let mockCarouselService: jasmine.SpyObj<CarouselService>
   let mockChangeDetector: jasmine.SpyObj<ChangeDetectorRef>
 
   const mockCarouselItems: CarouselItem[] = [
@@ -46,23 +43,21 @@ describe('CarouselComponent', () => {
   ]
 
   beforeEach(async () => {
-    mockCarouselService = jasmine.createSpyObj('CarouselService', ['getItems'])
-    mockCarouselService.getItems.and.returnValue(of(mockCarouselItems))
-
     mockChangeDetector = jasmine.createSpyObj('ChangeDetectorRef', [
       'detectChanges'
     ])
 
     await TestBed.configureTestingModule({
       declarations: [CarouselComponent],
-      providers: [
-        { provide: CarouselService, useValue: mockCarouselService },
-        { provide: ChangeDetectorRef, useValue: mockChangeDetector }
-      ]
+      providers: [{ provide: ChangeDetectorRef, useValue: mockChangeDetector }]
     }).compileComponents()
 
     fixture = TestBed.createComponent(CarouselComponent)
     component = fixture.componentInstance
+
+    // Set up component inputs
+    component.carouselHeader = 'Test Carousel'
+    component.carouselItems = mockCarouselItems
 
     // Mock window.innerWidth
     Object.defineProperty(window, 'innerWidth', {
@@ -91,14 +86,62 @@ describe('CarouselComponent', () => {
       expect(component.itemGap).toBe(8) // 1200px width = 8px gap
     })
 
-    it('should subscribe to carousel items on init', () => {
+    it('should have carousel items from input', () => {
+      component.ngOnInit()
       expect(component.items).toEqual(mockCarouselItems)
-      expect(mockCarouselService.getItems).toHaveBeenCalled()
     })
 
     it('should set carousel header input', () => {
       component.carouselHeader = 'Test Header'
       expect(component.carouselHeader).toBe('Test Header')
+    })
+
+    it('should set carousel index input', () => {
+      component.carouselIndex = 2
+      expect(component.carouselIndex).toBe(2)
+    })
+
+    it('should initialize with default carousel index of 0', () => {
+      expect(component.carouselIndex).toBe(0)
+    })
+
+    it('should convert input items to carousel items', () => {
+      const mockProcessedItems = [
+        {
+          id: '1',
+          heading: 'Processed Item 1',
+          canonicalUrl: 'https://example.com/1',
+          images: {
+            small: 'photo1_small.jpg',
+            large: 'photo1_large.jpg'
+          }
+        }
+      ]
+
+      component.carouselItems = mockProcessedItems
+      component['convertInputItemsToCarouselItems']()
+
+      expect(component.items.length).toBe(1)
+      expect(component.items[0].id).toBe('1')
+      expect(component.items[0].heading).toBe('Processed Item 1')
+      expect(component.items[0].canonicalUrl).toBe('https://example.com/1')
+      expect(component.items[0].images.small).toBe('photo1_small.jpg')
+      expect(component.items[0].images.large).toBe('photo1_large.jpg')
+    })
+
+    it('should handle empty carousel items input', () => {
+      component.carouselItems = []
+      component['convertInputItemsToCarouselItems']()
+
+      expect(component.items).toEqual([])
+    })
+
+    it('should call convertInputItemsToCarouselItems on ngOnChanges', () => {
+      spyOn(component as any, 'convertInputItemsToCarouselItems')
+
+      component.ngOnChanges()
+
+      expect(component['convertInputItemsToCarouselItems']).toHaveBeenCalled()
     })
   })
 
@@ -315,6 +358,50 @@ describe('CarouselComponent', () => {
         '8px' // Expected 8px based on component's current itemGap
       )
     })
+
+    it('should calculate carousel height based on item width', () => {
+      // Use the existing spy from beforeEach and configure its return value
+      ;(component as any)['calculateItemWidth'].and.returnValue(200)
+      component['updateCachedValues']()
+
+      const height = component.getCarouselHeight()
+
+      // For 2:3 aspect ratio, height = width * (3/2)
+      // 200px * 1.5 = 300px = 18.75rem
+      expect(height).toBe('18.75rem')
+    })
+
+    it('should respect minimum height bounds', () => {
+      // Use the existing spy and configure for very small item width
+      ;(component as any)['calculateItemWidth'].and.returnValue(50)
+      component['updateCachedValues']()
+
+      const height = component.getCarouselHeight()
+
+      // Should be clamped to minimum 12rem
+      expect(height).toBe('12rem')
+    })
+
+    it('should respect maximum height bounds', () => {
+      // Use the existing spy and configure for very large item width
+      ;(component as any)['calculateItemWidth'].and.returnValue(1000)
+      component['updateCachedValues']()
+
+      const height = component.getCarouselHeight()
+
+      // Should be clamped to maximum 50rem
+      expect(height).toBe('50rem')
+    })
+
+    it('should handle cached item width correctly', () => {
+      // Set cached width directly (bypassing the spy)
+      component['cachedItemWidth'] = 240
+
+      const height = component.getCarouselHeight()
+
+      // 240px * 1.5 = 360px = 22.5rem
+      expect(height).toBe('22.5rem')
+    })
   })
 
   describe('Image Handling', () => {
@@ -434,6 +521,298 @@ describe('CarouselComponent', () => {
     it('should apply carousel header when provided', () => {
       component.carouselHeader = 'Test Carousel'
       expect(component.carouselHeader).toBe('Test Carousel')
+    })
+  })
+
+  describe('Tab Navigation', () => {
+    beforeEach(() => {
+      component.items = mockCarouselItems // 5 items total
+      component.itemsPerPage = 3
+    })
+
+    describe('Left Button Tab Index', () => {
+      it('should return 1 when left scroll is available', () => {
+        component.anchorItemIndex = 1 // Not at the beginning
+
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+      })
+
+      it('should return -1 when left scroll is not available', () => {
+        component.anchorItemIndex = 0 // At the beginning
+
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+      })
+    })
+
+    describe('Right Button Tab Index', () => {
+      it('should return correct index when both buttons are present', () => {
+        component.anchorItemIndex = 1 // In the middle, both buttons available
+
+        const visibleItems = (component as any).getVisibleTabbableItems().length
+        const expectedIndex = 1 + visibleItems + 1 // left button + items + 1 for right button index
+        expect(component.getRightButtonTabIndex()).toBe(expectedIndex)
+      })
+
+      it('should return correct index when only right button is present', () => {
+        component.anchorItemIndex = 0 // At beginning, only right button
+
+        const visibleItems = (component as any).getVisibleTabbableItems().length
+        const expectedIndex = visibleItems + 1 // no left button + items + 1 for right button index
+        expect(component.getRightButtonTabIndex()).toBe(expectedIndex)
+      })
+
+      it('should return -1 when right scroll is not available', () => {
+        component.anchorItemIndex = 2 // At the end (5 items, 3 per page, index 2 = last page)
+
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+      })
+    })
+
+    describe('Item Tab Index', () => {
+      it('should return correct tab indices for visible items on first page', () => {
+        component.anchorItemIndex = 0 // First page, left button not present
+
+        // Items 0, 1, 2 should be tabbable with indices 1, 2, 3
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+      })
+
+      it('should return correct tab indices when left button is present', () => {
+        component.anchorItemIndex = 1 // Middle page, left button present
+
+        // Items 1, 2, 3 should be tabbable with indices 2, 3, 4 (after left button)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+        expect(component.getItemTabIndex(3)).toBe(4)
+      })
+
+      it('should return -1 for non-visible items', () => {
+        component.anchorItemIndex = 0 // First page
+
+        // Items 3+ should not be tabbable
+        expect(component.getItemTabIndex(3)).toBe(-1)
+        expect(component.getItemTabIndex(4)).toBe(-1)
+      })
+
+      it('should handle last page correctly', () => {
+        component.anchorItemIndex = 2 // Last page (items 2, 3, 4)
+
+        // Last 3 items should be tabbable
+        expect(component.getItemTabIndex(2)).toBe(2) // After left button
+        expect(component.getItemTabIndex(3)).toBe(3)
+        expect(component.getItemTabIndex(4)).toBe(4)
+      })
+    })
+
+    describe('Visible Tabbable Items', () => {
+      it('should return correct visible items for first page', () => {
+        component.anchorItemIndex = 0
+
+        const tabbableItems = (component as any).getVisibleTabbableItems()
+        expect(tabbableItems).toEqual([0, 1, 2])
+      })
+
+      it('should return correct visible items for middle page', () => {
+        component.anchorItemIndex = 1
+
+        const tabbableItems = (component as any).getVisibleTabbableItems()
+        expect(tabbableItems).toEqual([1, 2, 3])
+      })
+
+      it('should return correct visible items for last page', () => {
+        component.anchorItemIndex = 2 // Last possible anchor for 5 items with 3 per page
+
+        const tabbableItems = (component as any).getVisibleTabbableItems()
+        expect(tabbableItems).toEqual([2, 3, 4])
+      })
+    })
+
+    describe('Tab Navigation Integration', () => {
+      it('should maintain tab order when scrolling right', () => {
+        component.anchorItemIndex = 0 // First page
+
+        // Initial state: no left button, items 0,1,2 tabbable, right button at index 4
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+        expect(component.getRightButtonTabIndex()).toBe(4)
+
+        // Scroll right
+        component.scrollRight()
+
+        // After scrolling: nextAnchor = 0 + 3 = 3, maxAnchor = 5 - 3 = 2, so anchor becomes min(3, 2) = 2
+        // This means items 2,3,4 are visible, and canScrollRight becomes false
+        expect(component.anchorItemIndex).toBe(2)
+        expect(component.canScrollRight).toBe(false)
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+        expect(component.getItemTabIndex(2)).toBe(2)
+        expect(component.getItemTabIndex(3)).toBe(3)
+        expect(component.getItemTabIndex(4)).toBe(4)
+        expect(component.getRightButtonTabIndex()).toBe(-1) // No more pages to scroll
+      })
+
+      it('should maintain tab order when scrolling left', () => {
+        component.anchorItemIndex = 2 // Last page (with 5 items and 3 per page)
+
+        // Initial state: left button at 1, items 2,3,4 tabbable, no right button
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+        expect(component.getItemTabIndex(2)).toBe(2)
+        expect(component.getItemTabIndex(3)).toBe(3)
+        expect(component.getItemTabIndex(4)).toBe(4)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+
+        // Scroll left: anchor becomes max(0, 2-3) = 0
+        component.scrollLeft()
+
+        expect(component.anchorItemIndex).toBe(0)
+        expect(component.getLeftButtonTabIndex()).toBe(-1) // Back to first page
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+        expect(component.getRightButtonTabIndex()).toBe(4) // Can scroll right again
+      })
+
+      it('should handle single page scenario correctly', () => {
+        // Test with fewer items than itemsPerPage
+        component.items = mockCarouselItems.slice(0, 2) // Only 2 items
+        component.itemsPerPage = 3
+        component.anchorItemIndex = 0
+
+        // No scroll buttons should be present, only items tabbable
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+      })
+
+      it('should handle exact page size scenario', () => {
+        // Test with exactly itemsPerPage items
+        component.items = mockCarouselItems.slice(0, 3) // Exactly 3 items
+        component.itemsPerPage = 3
+        component.anchorItemIndex = 0
+
+        // No scroll buttons should be present
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+        expect(component.getItemTabIndex(1)).toBe(2)
+        expect(component.getItemTabIndex(2)).toBe(3)
+      })
+    })
+
+    describe('Tab Navigation Edge Cases', () => {
+      it('should handle empty items array', () => {
+        component.items = []
+        component.itemsPerPage = 3
+
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(-1)
+      })
+
+      it('should handle single item', () => {
+        component.items = [mockCarouselItems[0]]
+        component.itemsPerPage = 3
+        component.anchorItemIndex = 0
+
+        expect(component.getLeftButtonTabIndex()).toBe(-1)
+        expect(component.getRightButtonTabIndex()).toBe(-1)
+        expect(component.getItemTabIndex(0)).toBe(1)
+      })
+
+      it('should handle itemsPerPage = 1', () => {
+        component.items = mockCarouselItems // 5 items
+        component.itemsPerPage = 1
+        component.anchorItemIndex = 2 // Middle item
+
+        // Should have both buttons and only one item tabbable
+        expect(component.getLeftButtonTabIndex()).toBe(1)
+        expect(component.getItemTabIndex(2)).toBe(2)
+        expect(component.getRightButtonTabIndex()).toBe(3)
+
+        // Other items should not be tabbable
+        expect(component.getItemTabIndex(0)).toBe(-1)
+        expect(component.getItemTabIndex(1)).toBe(-1)
+        expect(component.getItemTabIndex(3)).toBe(-1)
+        expect(component.getItemTabIndex(4)).toBe(-1)
+      })
+    })
+
+    describe('Global Tab Index with Carousel Index', () => {
+      it('should calculate correct global tab indices for carousel index 0', () => {
+        component.carouselIndex = 0
+        component.anchorItemIndex = 1 // In the middle - both buttons available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // With anchorItemIndex=1, itemsPerPage=3, items.length=5:
+        // canScrollRight = 1 + 3 < 5 = true (can scroll right)
+        // isLastPage = false
+        // visibleItemsStartIndex = anchorItemIndex = 1
+        // visibleItems = [1, 2, 3]
+
+        // For carousel 0: base = (0 * 10) + 1 = 1
+        expect(component.getLeftButtonTabIndex()).toBe(1) // base = 1
+        expect(component.getItemTabIndex(1)).toBe(2) // base + left offset + indexOf(1 in [1,2,3]) = 1 + 1 + 0 = 2
+        expect(component.getItemTabIndex(2)).toBe(3) // base + left offset + indexOf(2 in [1,2,3]) = 1 + 1 + 1 = 3
+        expect(component.getItemTabIndex(3)).toBe(4) // base + left offset + indexOf(3 in [1,2,3]) = 1 + 1 + 2 = 4
+        expect(component.getRightButtonTabIndex()).toBe(5) // base + left offset + visibleItems.length = 1 + 1 + 3 = 5
+      })
+
+      it('should calculate correct global tab indices for carousel index 1', () => {
+        component.carouselIndex = 1
+        component.anchorItemIndex = 1 // In the middle - both buttons available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 1: base = (1 * 10) + 1 = 11
+        expect(component.getLeftButtonTabIndex()).toBe(11) // base = 11
+        expect(component.getItemTabIndex(1)).toBe(12) // base + left offset + indexOf(1) = 11 + 1 + 0 = 12
+        expect(component.getItemTabIndex(2)).toBe(13) // base + left offset + indexOf(2) = 11 + 1 + 1 = 13
+        expect(component.getItemTabIndex(3)).toBe(14) // base + left offset + indexOf(3) = 11 + 1 + 2 = 14
+        expect(component.getRightButtonTabIndex()).toBe(15) // base + left offset + visible items count = 11 + 1 + 3 = 15
+      })
+
+      it('should calculate correct global tab indices for carousel index 2', () => {
+        component.carouselIndex = 2
+        component.anchorItemIndex = 1 // In the middle - both buttons available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 2: base = (2 * 10) + 1 = 21
+        expect(component.getLeftButtonTabIndex()).toBe(21) // base = 21
+        expect(component.getItemTabIndex(1)).toBe(22) // base + left offset + indexOf(1) = 21 + 1 + 0 = 22
+        expect(component.getItemTabIndex(2)).toBe(23) // base + left offset + indexOf(2) = 21 + 1 + 1 = 23
+        expect(component.getItemTabIndex(3)).toBe(24) // base + left offset + indexOf(3) = 21 + 1 + 2 = 24
+        expect(component.getRightButtonTabIndex()).toBe(25) // base + left offset + visible items count = 21 + 1 + 3 = 25
+      })
+
+      it('should handle carousel index when only right button is available', () => {
+        component.carouselIndex = 1
+        component.anchorItemIndex = 0 // Only right button available
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 1: base = (1 * 10) + 1 = 11
+        expect(component.getLeftButtonTabIndex()).toBe(-1) // No left button
+        expect(component.getItemTabIndex(0)).toBe(11) // base + no left offset + item index = 11 + 0 + 0 = 11
+        expect(component.getItemTabIndex(1)).toBe(12) // base + no left offset + item index = 11 + 0 + 1 = 12
+        expect(component.getItemTabIndex(2)).toBe(13) // base + no left offset + item index = 11 + 0 + 2 = 13
+        expect(component.getRightButtonTabIndex()).toBe(14) // base + no left offset + visible items = 11 + 0 + 3 = 14
+      })
+
+      it('should handle carousel index when only left button is available', () => {
+        component.carouselIndex = 2
+        component.anchorItemIndex = 2 // Only left button available (last page)
+        component.items = mockCarouselItems // 5 items total
+        component.itemsPerPage = 3
+
+        // For carousel 2: base = (2 * 10) + 1 = 21
+        expect(component.getLeftButtonTabIndex()).toBe(21) // base + 0 = 21
+        expect(component.getRightButtonTabIndex()).toBe(-1) // No right button on last page
+      })
     })
   })
 })

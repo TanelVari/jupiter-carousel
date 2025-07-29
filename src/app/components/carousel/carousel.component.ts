@@ -4,12 +4,12 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
-  Input
+  Input,
+  OnChanges
 } from '@angular/core'
-import { Observable, Subject } from 'rxjs'
-import { takeUntil } from 'rxjs/operators'
+import { Subject } from 'rxjs'
 import { CarouselItem } from '../../interfaces/carousel.interface'
-import { CarouselService } from '../../services/carousel.service'
+import { ProcessedCarouselItem } from '../../interfaces/api.interface'
 
 @Component({
   selector: 'app-carousel',
@@ -17,9 +17,11 @@ import { CarouselService } from '../../services/carousel.service'
   templateUrl: './carousel.component.html',
   styleUrls: ['./carousel.component.css']
 })
-export class CarouselComponent implements OnInit, OnDestroy {
+export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
   @Input() carouselHeader = ''
-  items$: Observable<CarouselItem[]>
+  @Input() carouselItems: ProcessedCarouselItem[] = []
+  @Input() carouselIndex = 0 // Index of this carousel in the sequence
+
   items: CarouselItem[] = []
   anchorItemIndex = 0
   itemsPerPage = 7
@@ -35,25 +37,35 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>()
 
-  constructor(
-    private carouselService: CarouselService,
-    private cdr: ChangeDetectorRef
-  ) {
-    this.items$ = this.carouselService.getItems()
-  }
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.items$.pipe(takeUntil(this.destroy$)).subscribe(items => {
-      this.items = items
-      this.anchorItemIndex = 0 // Reset to first page when items change
-      this.updateCachedValues() // Recalculate cached values
-      this.cdr.detectChanges()
-    })
+    this.convertInputItemsToCarouselItems()
 
     // Set initial items per page based on screen size
     this.updateItemsPerPage()
     this.updateCSSVariables()
     this.updateCachedValues() // Initial calculation
+  }
+
+  ngOnChanges(): void {
+    // Convert input items when they change
+    this.convertInputItemsToCarouselItems()
+    this.anchorItemIndex = 0 // Reset to first page when items change
+    this.updateCachedValues() // Recalculate cached values
+    this.cdr.detectChanges()
+  }
+
+  private convertInputItemsToCarouselItems(): void {
+    this.items = this.carouselItems.map(item => ({
+      id: item.id || '',
+      heading: item.heading || '',
+      canonicalUrl: item.canonicalUrl || '',
+      images: {
+        small: item.images?.small || '',
+        large: item.images?.large || ''
+      }
+    }))
   }
 
   ngOnDestroy(): void {
@@ -122,31 +134,30 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   private calculateItemWidth(): number {
+    // Calculate what width would fit based on available space
     const viewportWidth = window.innerWidth
-    const totalPadding = this.containerPadding
+    const availableWidth = viewportWidth - this.containerPadding
 
-    // Simple approach: calculate width based on itemsPerPage + space for partial previews
-    // We need to fit: [30% left] + [itemsPerPage full items] + [30% right]
-    // Each partial preview takes 30% of an item width
-
+    // Account for gaps between main items
     const mainItemGaps = this.itemGap * (this.itemsPerPage - 1)
-    let extraSpace = 0
 
-    // Add space for gaps and partial preview items
+    // Reserve space for partial preview items (left and right)
+    let extraSpace = 0
     if (this.items.length > this.itemsPerPage) {
       // Reserve space for potential left and right previews
-      // Each preview: 30% of item width + gap
+      // Each preview: gap space
       extraSpace = this.itemGap * 2 // gaps for preview items
-      // The partial preview space will be calculated as a fraction of available space
     }
 
-    const availableWidth =
-      viewportWidth - totalPadding - mainItemGaps - extraSpace
+    // Calculate available width for items
+    const widthForItems = availableWidth - mainItemGaps - extraSpace
 
     // Calculate item width accounting for partial previews
     // Total items to fit: itemsPerPage + 0.3 (left) + 0.3 (right) = itemsPerPage + 0.6
     const effectiveItemCount = this.itemsPerPage + 0.6
-    return availableWidth / effectiveItemCount
+    const itemWidth = widthForItems / effectiveItemCount
+
+    return itemWidth
   }
 
   private calculateTranslateX(): number {
@@ -291,5 +302,80 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
       this.updateCachedValues() // Recalculate for smooth transition
     }
+  }
+
+  // Tab navigation helpers
+  getLeftButtonTabIndex(): number {
+    // Left button gets tabindex 1 when it exists (first in tab order)
+    if (!this.canScrollLeft) return -1
+    // Each carousel reserves 10 tab indices (1 left + 7 max items + 1 right + 1 buffer)
+    return this.carouselIndex * 10 + 1
+  }
+
+  getRightButtonTabIndex(): number {
+    // Right button gets tabindex based on how many items are tabbable
+    if (!this.canScrollRight) return -1
+    const visibleTabbableItems = this.getVisibleTabbableItems().length
+    const baseIndex = this.carouselIndex * 10 + 1 // Start of this carousel's range
+    const leftButtonOffset = this.canScrollLeft ? 1 : 0 // Add 1 if left button exists
+    return baseIndex + leftButtonOffset + visibleTabbableItems
+  }
+
+  getItemTabIndex(itemIndex: number): number {
+    // Only visible (non-dimmed) items should be tabbable
+    const visibleTabbableItems = this.getVisibleTabbableItems()
+    const itemIndexInTabbable = visibleTabbableItems.indexOf(itemIndex)
+
+    if (itemIndexInTabbable === -1) {
+      return -1 // Item is not tabbable (dimmed/preview item)
+    }
+
+    const baseIndex = this.carouselIndex * 10 + 1 // Start of this carousel's range
+    const leftButtonOffset = this.canScrollLeft ? 1 : 0 // Add 1 if left button exists
+    return baseIndex + leftButtonOffset + itemIndexInTabbable
+  }
+
+  private getVisibleTabbableItems(): number[] {
+    const isLastPage = !this.canScrollRight
+    let visibleItemsStartIndex = this.anchorItemIndex
+
+    if (isLastPage) {
+      // On the last page, the visible items are aligned to the end
+      visibleItemsStartIndex = Math.max(
+        0,
+        this.items.length - this.itemsPerPage
+      )
+    }
+
+    const visibleItemsEndIndex = visibleItemsStartIndex + this.itemsPerPage - 1
+
+    // Return indices of main visible items (not dimmed preview items)
+    const tabbableItems: number[] = []
+    for (
+      let i = visibleItemsStartIndex;
+      i <= visibleItemsEndIndex && i < this.items.length;
+      i++
+    ) {
+      tabbableItems.push(i)
+    }
+
+    return tabbableItems
+  }
+
+  getCarouselHeight(): string {
+    // Calculate height based on the actual item width to ensure perfect fit
+    // This prevents gaps between header and items
+    const itemWidthPx = this.cachedItemWidth || this.calculateItemWidth()
+
+    // For 2:3 aspect ratio, height = width * (3/2)
+    const itemHeightPx = itemWidthPx * (3 / 2)
+
+    // Convert to rem
+    const heightInRem = itemHeightPx / 16
+
+    // Reasonable bounds
+    const boundedHeightInRem = Math.max(12, Math.min(50, heightInRem))
+
+    return `${boundedHeightInRem}rem`
   }
 }

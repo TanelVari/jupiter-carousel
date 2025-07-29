@@ -24,23 +24,15 @@ button:focus {
   outline-offset: 2px;
 }
 
-/* Ensure smooth scrolling and proper aspect ratios */
-.carousel-item {
-  transition: transform 0.3s ease-in-out;
+/* Focus styles for carousel item links */
+a:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
-/* Hide scrollbars but allow scrolling */
-.carousel-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.carousel-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Custom focus styles for accessibility */
-button:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+/* Ensure carousel items have space for focus outline - only vertical padding */
+.carousel-item-wrapper {
+  padding-top: 6px;
+  padding-bottom: 6px;
 }

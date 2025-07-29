@@ -95,9 +95,12 @@ export class ApiService {
   private processApiResponse(apiResponse: ApiResponse): ProcessedCarousel[] {
     const { frontPage } = apiResponse.data.category
 
-    // Filter out sections where highTimeline is false and process the rest
+    // Filter out sections where highTimeline is false or data array is empty
     const validSections = frontPage.filter(
-      (section: CarouselSection) => section.highTimeline !== false
+      (section: CarouselSection) =>
+        section.highTimeline !== false &&
+        section.data &&
+        section.data.length > 0
     )
 
     return validSections.map((section: CarouselSection, index: number) => ({

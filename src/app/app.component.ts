@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core'
 import { Subject } from 'rxjs'
 import { takeUntil } from 'rxjs/operators'
 import { CarouselService } from './services/carousel.service'
+import { ProcessedCarousel } from './interfaces/api.interface'
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,7 @@ import { CarouselService } from './services/carousel.service'
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'Jupiter Carousel'
-  carouselHeader = ''
+  carousels: ProcessedCarousel[] = []
   private destroy$ = new Subject<void>()
 
   constructor(private carouselService: CarouselService) {}
@@ -21,9 +22,7 @@ export class AppComponent implements OnInit, OnDestroy {
       .getCarousels()
       .pipe(takeUntil(this.destroy$))
       .subscribe(carousels => {
-        if (carousels && carousels.length > 0) {
-          this.carouselHeader = carousels[0].header
-        }
+        this.carousels = carousels || []
       })
   }
 

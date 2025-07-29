@@ -1,14 +1,14 @@
-<div class="relative w-full overflow-hidden bg-gray-900 min-h-screen">
+<div class="relative w-full overflow-hidden bg-gray-900">
   <!-- Carousel header -->
   <h3
     *ngIf="carouselHeader"
-    class="text-white text-xl font-bold px-4 md:px-8 pt-6 pb-0"
+    class="text-white text-2xl font-bold px-4 md:px-8 pt-4 pb-3"
   >
     {{ carouselHeader }}
   </h3>
 
   <!-- Carousel container -->
-  <div class="relative h-full mt-2 mb-6">
+  <div class="relative mb-4" [style.height]="getCarouselHeight()">
     <!-- Left scroll button -->
     <button
       *ngIf="canScrollLeft"
@@ -16,6 +16,7 @@
       class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 bg-black bg-opacity-90 hover:bg-white hover:bg-opacity-20 active:bg-white active:text-black focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 text-white rounded-full p-3 md:p-4 shadow-lg"
       style="outline: none !important; border: none !important"
       aria-label="Scroll left"
+      [tabindex]="getLeftButtonTabIndex()"
     >
       <svg
         class="w-6 h-6 md:w-8 md:h-8"
@@ -39,6 +40,7 @@
       class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 bg-black bg-opacity-90 hover:bg-white hover:bg-opacity-20 active:bg-white active:text-black focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 text-white rounded-full p-3 md:p-4 shadow-lg"
       style="outline: none !important; border: none !important"
       aria-label="Scroll right"
+      [tabindex]="getRightButtonTabIndex()"
     >
       <svg
         class="w-6 h-6 md:w-8 md:h-8"
@@ -56,10 +58,10 @@
     </button>
 
     <!-- Carousel items -->
-    <div class="relative flex h-full items-center overflow-hidden">
+    <div class="relative flex h-full items-center">
       <!-- Carousel ribbon with all items -->
       <div
-        class="flex h-full items-center px-4 md:px-8"
+        class="flex h-full items-center px-4 md:px-8 carousel-ribbon"
         [class.transition-transform]="!isResizing"
         [class.duration-500]="!isResizing"
         [class.ease-in-out]="!isResizing"
@@ -68,19 +70,20 @@
       >
         <div
           *ngFor="let item of visibleItems; let i = index"
-          class="flex-shrink-0"
-          [style.width]="getItemWidth()"
+          class="flex-shrink-0 carousel-item-wrapper"
           [class.opacity-40]="getItemOpacity(i)"
         >
           <a
             [href]="item.canonicalUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="relative group cursor-pointer h-full w-full block"
+            class="relative group cursor-pointer block"
             [attr.aria-label]="item.heading"
+            [tabindex]="getItemTabIndex(i)"
           >
             <div
-              class="aspect-[2/3] overflow-hidden rounded-sm shadow-2xl bg-gray-800"
+              class="overflow-hidden rounded-sm shadow-2xl bg-gray-800 h-full"
+              [style.width]="getItemWidth()"
             >
               <img
                 [src]="getImageUrl(item)"

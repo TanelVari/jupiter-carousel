@@ -1,4 +1,22 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Carousel Component -->
-  <app-carousel [carouselHeader]="carouselHeader"></app-carousel>
+<div class="min-h-screen h-full bg-gray-900 pb-0">
+  <!-- Multiple Carousel Components - one for each carousel section -->
+  <div
+    *ngFor="let carousel of carousels; let i = index; let last = last"
+    class="w-full"
+    [class.mb-4]="!last"
+  >
+    <app-carousel
+      [carouselHeader]="carousel.header"
+      [carouselItems]="carousel.items"
+      [carouselIndex]="i"
+    ></app-carousel>
+  </div>
+
+  <!-- Loading state when no carousels -->
+  <div
+    *ngIf="carousels.length === 0"
+    class="flex items-center justify-center min-h-screen"
+  >
+    <div class="text-white text-xl">Loading carousels...</div>
+  </div>
 </div>
