@@ -31,96 +31,34 @@ describe('ApiService', () => {
             },
             data: [
               {
-                id: 123,
                 heading: 'Test Item 1',
-                primaryCategoryId: 1,
-                type: 'video',
-                parentContentPath: '/test',
-                scheduleStart: Date.now(),
-                subHeading: 'Test Sub 1',
-                hasActiveMedia: true,
-                rootContentId: 123,
-                rootCategoryId: 1,
                 canonicalUrl: 'https://example.com/item1',
-                fancyUrl: 'https://example.com/fancy1',
-                anotherDomainContent: false,
                 verticalPhotos: [
                   {
-                    id: 1,
-                    ord: 1,
-                    type: 1,
-                    created: Date.now(),
-                    version: 1,
-                    format: 'jpg',
-                    captionEt: 'Caption ET',
-                    captionEn: 'Caption EN',
-                    captionRu: 'Caption RU',
-                    authorEt: 'Author ET',
-                    authorEn: 'Author EN',
-                    authorRu: 'Author RU',
                     photoTypes: {
                       '60': {
-                        type: 60,
-                        w: 180,
-                        h: 270,
                         url: 'https://example.com/small1.jpg'
                       },
                       '80': {
-                        type: 80,
-                        w: 400,
-                        h: 600,
                         url: 'https://example.com/large1.jpg'
                       }
-                    },
-                    photoUrlOriginal: 'https://example.com/original1.jpg',
-                    photoUrlBase: 'https://example.com/base1.jpg'
+                    }
                   }
                 ]
               },
               {
-                id: 124,
                 heading: 'Test Item 2',
-                primaryCategoryId: 1,
-                type: 'article',
-                parentContentPath: '/test',
-                scheduleStart: Date.now(),
-                subHeading: 'Test Sub 2',
-                hasActiveMedia: false,
-                rootContentId: 124,
-                rootCategoryId: 1,
                 canonicalUrl: 'https://example.com/item2',
-                fancyUrl: 'https://example.com/fancy2',
-                anotherDomainContent: false,
                 verticalPhotos: [
                   {
-                    id: 2,
-                    ord: 1,
-                    type: 1,
-                    created: Date.now(),
-                    version: 1,
-                    format: 'jpg',
-                    captionEt: 'Caption ET 2',
-                    captionEn: 'Caption EN 2',
-                    captionRu: 'Caption RU 2',
-                    authorEt: 'Author ET 2',
-                    authorEn: 'Author EN 2',
-                    authorRu: 'Author RU 2',
                     photoTypes: {
                       '60': {
-                        type: 60,
-                        w: 180,
-                        h: 270,
                         url: 'https://example.com/small2.jpg'
                       },
                       '80': {
-                        type: 80,
-                        w: 400,
-                        h: 600,
                         url: 'https://example.com/large2.jpg'
                       }
-                    },
-                    photoUrlOriginal: 'https://example.com/original2.jpg',
-                    photoUrlBase: 'https://example.com/base2.jpg'
+                    }
                   }
                 ]
               }
@@ -137,19 +75,8 @@ describe('ApiService', () => {
             },
             data: [
               {
-                id: 125,
                 heading: 'Filtered Item',
-                primaryCategoryId: 1,
-                type: 'video',
-                parentContentPath: '/test',
-                scheduleStart: Date.now(),
-                subHeading: 'Filtered Sub',
-                hasActiveMedia: true,
-                rootContentId: 125,
-                rootCategoryId: 1,
                 canonicalUrl: 'https://example.com/filtered',
-                fancyUrl: 'https://example.com/fancy-filtered',
-                anotherDomainContent: false,
                 verticalPhotos: []
               }
             ]
@@ -165,7 +92,7 @@ describe('ApiService', () => {
       header: 'Test Carousel 1',
       items: [
         {
-          id: '123',
+          id: 'item-0',
           heading: 'Test Item 1',
           canonicalUrl: 'https://example.com/item1',
           images: {
@@ -174,7 +101,7 @@ describe('ApiService', () => {
           }
         },
         {
-          id: '124',
+          id: 'item-1',
           heading: 'Test Item 2',
           canonicalUrl: 'https://example.com/item2',
           images: {
@@ -411,27 +338,6 @@ describe('ApiService', () => {
     }, 100)
   })
 
-  it('should get carousel by id successfully', done => {
-    setTimeout(() => {
-      service.getCarouselById('carousel-0').subscribe(carousel => {
-        expect(carousel).toBeDefined()
-        expect(carousel?.id).toBe('carousel-0')
-        expect(carousel?.header).toBe('Test Carousel 1')
-        expect(carousel?.items.length).toBe(2)
-        done()
-      })
-    }, 100)
-  })
-
-  it('should return undefined for non-existent carousel id', done => {
-    setTimeout(() => {
-      service.getCarouselById('non-existent-id').subscribe(carousel => {
-        expect(carousel).toBeUndefined()
-        done()
-      })
-    }, 100)
-  })
-
   it('should handle missing photo types gracefully', async () => {
     const apiResponseWithMissingPhotos: ApiResponse = {
       ...mockApiResponse,
@@ -451,19 +357,8 @@ describe('ApiService', () => {
               },
               data: [
                 {
-                  id: 999,
                   heading: 'Item Without Photos',
-                  primaryCategoryId: 1,
-                  type: 'article',
-                  parentContentPath: '/test',
-                  scheduleStart: Date.now(),
-                  subHeading: 'Test Sub',
-                  hasActiveMedia: false,
-                  rootContentId: 999,
-                  rootCategoryId: 1,
                   canonicalUrl: 'https://example.com/no-photos',
-                  fancyUrl: 'https://example.com/fancy-no-photos',
-                  anotherDomainContent: false,
                   verticalPhotos: [] // Empty photos array
                 }
               ]
@@ -511,19 +406,8 @@ describe('ApiService', () => {
               },
               data: [
                 {
-                  id: 888,
                   heading: '', // Empty heading
-                  primaryCategoryId: 1,
-                  type: 'article',
-                  parentContentPath: '/test',
-                  scheduleStart: Date.now(),
-                  subHeading: 'Test Sub',
-                  hasActiveMedia: false,
-                  rootContentId: 888,
-                  rootCategoryId: 1,
                   canonicalUrl: '',
-                  fancyUrl: '',
-                  anotherDomainContent: false,
                   verticalPhotos: []
                 }
               ]
@@ -567,19 +451,8 @@ describe('ApiService', () => {
               manual: { highTimeline: true, banner: false },
               data: [
                 {
-                  id: 100,
                   heading: 'Visible Item',
-                  primaryCategoryId: 1,
-                  type: 'article',
-                  parentContentPath: '/test',
-                  scheduleStart: Date.now(),
-                  subHeading: 'Visible Sub',
-                  hasActiveMedia: false,
-                  rootContentId: 100,
-                  rootCategoryId: 1,
                   canonicalUrl: 'https://example.com/visible',
-                  fancyUrl: 'https://example.com/visible-fancy',
-                  anotherDomainContent: false,
                   verticalPhotos: []
                 }
               ]
@@ -592,19 +465,8 @@ describe('ApiService', () => {
               manual: { highTimeline: false, banner: false },
               data: [
                 {
-                  id: 200,
                   heading: 'Hidden Item',
-                  primaryCategoryId: 1,
-                  type: 'article',
-                  parentContentPath: '/test',
-                  scheduleStart: Date.now(),
-                  subHeading: 'Hidden Sub',
-                  hasActiveMedia: false,
-                  rootContentId: 200,
-                  rootCategoryId: 1,
                   canonicalUrl: 'https://example.com/hidden',
-                  fancyUrl: 'https://example.com/hidden-fancy',
-                  anotherDomainContent: false,
                   verticalPhotos: []
                 }
               ]

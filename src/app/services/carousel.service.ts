@@ -67,10 +67,6 @@ export class CarouselService {
     return this.apiService.getCarousels()
   }
 
-  selectCarousel(carouselId: string): void {
-    this.selectedCarouselIdSubject.next(carouselId)
-  }
-
   getLoading(): Observable<boolean> {
     return this.apiService.loading$
   }
