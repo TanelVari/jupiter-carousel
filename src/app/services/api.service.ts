@@ -8,6 +8,15 @@ import {
 } from '../interfaces/api.interface'
 import { environment } from '../../environments/environment'
 
+interface RawApiItem {
+  id?: number
+  heading?: string
+  canonicalUrl?: string
+  verticalPhotos?: Array<{
+    photoTypes?: Record<string, { url?: string }>
+  }>
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -101,7 +110,7 @@ export class ApiService {
   }
 
   private processCarouselItem(
-    apiItem: any,
+    apiItem: RawApiItem,
     index: number
   ): ProcessedCarouselItem {
     const verticalPhoto = apiItem.verticalPhotos?.[0]

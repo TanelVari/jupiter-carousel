@@ -166,7 +166,7 @@ describe('ApiService', () => {
   })
 
   it('should set loading state correctly during fetch', async () => {
-    let loadingStates: boolean[] = []
+    const loadingStates: boolean[] = []
 
     service.loading$.subscribe(loading => {
       loadingStates.push(loading)

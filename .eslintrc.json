@@ -1,0 +1,92 @@
+{
+  "root": true,
+  "ignorePatterns": ["projects/**/*", "dist/**/*", "node_modules/**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": ["eslint:recommended"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": ["tsconfig.json"],
+        "createDefaultProgram": true
+      },
+      "plugins": ["@typescript-eslint", "@angular-eslint"],
+      "env": {
+        "browser": true,
+        "es2020": true,
+        "node": true
+      },
+      "globals": {
+        "console": "readonly",
+        "fetch": "readonly",
+        "setTimeout": "readonly",
+        "clearTimeout": "readonly",
+        "window": "readonly",
+        "document": "readonly"
+      },
+      "rules": {
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { "argsIgnorePattern": "^_" }
+        ],
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "warn",
+        "no-console": ["warn", { "allow": ["warn", "error"] }],
+        "prefer-const": "error",
+        "no-var": "error"
+      }
+    },
+    {
+      "files": ["*.spec.ts"],
+      "extends": ["eslint:recommended"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": ["tsconfig.spec.json"],
+        "createDefaultProgram": true
+      },
+      "plugins": ["@typescript-eslint", "@angular-eslint"],
+      "env": {
+        "browser": true,
+        "es2020": true,
+        "jasmine": true,
+        "node": true
+      },
+      "globals": {
+        "console": "readonly",
+        "fetch": "readonly",
+        "setTimeout": "readonly",
+        "clearTimeout": "readonly",
+        "window": "readonly",
+        "document": "readonly",
+        "jasmine": "readonly",
+        "describe": "readonly",
+        "it": "readonly",
+        "expect": "readonly",
+        "beforeEach": "readonly",
+        "afterEach": "readonly",
+        "spyOn": "readonly"
+      },
+      "rules": {
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { "argsIgnorePattern": "^_" }
+        ],
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "no-console": "off",
+        "prefer-const": "error",
+        "no-var": "error"
+      }
+    },
+    {
+      "files": ["*.html"],
+      "parser": "@angular-eslint/template-parser",
+      "plugins": ["@angular-eslint/template"],
+      "rules": {
+        "@angular-eslint/template/no-negated-async": "error"
+      }
+    }
+  ]
+}
