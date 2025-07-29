@@ -7,14 +7,13 @@ import {
   ProcessedCarousel,
   ProcessedCarouselItem
 } from '../interfaces/api.interface'
+import { environment } from '../../environments/environment'
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  // TODO: implement different endpoint dev and prod env's
-  private readonly API_URL =
-    'https://services.err.ee/api/v2/category/getByUrl?url=video&domain=jupiter.err.ee'
+  private readonly API_URL = environment.apiUrl
 
   private carouselsSubject = new BehaviorSubject<ProcessedCarousel[]>([])
   public carousels$: Observable<ProcessedCarousel[]> =
@@ -35,21 +34,38 @@ export class ApiService {
     this.errorSubject.next(null)
 
     try {
-      const response = await fetch(this.API_URL, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        }
-      })
+      let data: ApiResponse
 
-      if (!response.ok) {
-        throw new Error(
-          `HTTP error! status: ${response.status} - ${response.statusText}`
-        )
+      if (environment.production) {
+        // Production: Use remote API
+        const response = await fetch(this.API_URL, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error(
+            `HTTP error! status: ${response.status} - ${response.statusText}`
+          )
+        }
+
+        data = await response.json()
+      } else {
+        // Development: Use local JSON file
+        const response = await fetch(this.API_URL)
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load local data file: ${response.status} - ${response.statusText}`
+          )
+        }
+
+        data = await response.json()
       }
 
-      const data: ApiResponse = await response.json()
       const processedCarousels = this.processApiResponse(data)
       this.carouselsSubject.next(processedCarousels)
     } catch (error) {
