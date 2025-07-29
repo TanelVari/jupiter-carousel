@@ -44,7 +44,10 @@ export class CarouselService {
       id: item.id,
       heading: item.heading,
       canonicalUrl: item.canonicalUrl,
-      imageUrl: item.images.large || item.images.small
+      images: {
+        small: item.images.small,
+        large: item.images.large
+      }
     }))
   }
 

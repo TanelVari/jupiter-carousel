@@ -5,11 +5,11 @@
     <button
       *ngIf="canScrollLeft"
       (click)="scrollLeft()"
-      class="absolute left-8 top-1/2 transform -translate-y-1/2 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 text-white rounded-full p-4 transition-all duration-200 shadow-lg"
+      class="absolute left-4 md:left-8 top-1/2 transform -translate-y-1/2 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 text-white rounded-full p-3 md:p-4 transition-all duration-200 shadow-lg"
       aria-label="Scroll left"
     >
       <svg
-        class="w-8 h-8"
+        class="w-6 h-6 md:w-8 md:h-8"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -27,11 +27,11 @@
     <button
       *ngIf="canScrollRight"
       (click)="scrollRight()"
-      class="absolute right-8 top-1/2 transform -translate-y-1/2 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 text-white rounded-full p-4 transition-all duration-200 shadow-lg"
+      class="absolute right-4 md:right-8 top-1/2 transform -translate-y-1/2 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 text-white rounded-full p-3 md:p-4 transition-all duration-200 shadow-lg"
       aria-label="Scroll right"
     >
       <svg
-        class="w-8 h-8"
+        class="w-6 h-6 md:w-8 md:h-8"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -47,14 +47,14 @@
 
     <!-- Carousel items -->
     <div
-      class="flex transition-all duration-500 ease-in-out h-full items-center"
-      style="padding-left: 16.67%; padding-right: 16.67%"
+      class="flex transition-all duration-500 ease-in-out h-full items-center px-4 md:px-8"
+      [style.gap.px]="itemGap / (itemsPerPage - 1)"
     >
       <div
         *ngFor="let item of visibleItems; let i = index"
-        class="flex-shrink-0 px-3"
-        [style.width.%]="14.28"
-        [class.opacity-40]="i === 7"
+        class="flex-shrink-0"
+        [style.width]="getItemWidth()"
+        [class.opacity-40]="i >= itemsPerPage"
       >
         <a
           [href]="item.canonicalUrl"
@@ -67,8 +67,9 @@
             class="aspect-[2/3] overflow-hidden rounded-sm shadow-2xl bg-gray-800"
           >
             <img
-              [src]="item.imageUrl"
+              [src]="getImageUrl(item)"
               [alt]="item.heading"
+              [sizes]="getImageSizes()"
               class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               loading="lazy"
             />
