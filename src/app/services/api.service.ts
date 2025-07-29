@@ -112,11 +112,8 @@ export class ApiService {
             heading: 'Content Unavailable',
             canonicalUrl: '#',
             images: {
-              // TODO: Replace with actual fallback images
-              small:
-                'https://via.placeholder.com/180x270/6B7280/FFFFFF?text=Content+Unavailable',
-              large:
-                'https://via.placeholder.com/400x600/6B7280/FFFFFF?text=Content+Unavailable'
+              small: 'assets/carousel-item-placeholder.png',
+              large: 'assets/carousel-item-placeholder.png'
             }
           }
         ]
