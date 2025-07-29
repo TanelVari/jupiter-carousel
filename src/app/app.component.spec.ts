@@ -14,11 +14,12 @@ import {
   selector: 'app-carousel',
   standalone: false,
   template:
-    '<div data-testid="carousel">Mock Carousel: {{carouselHeader}} - Items: {{carouselItems?.length || 0}}</div>'
+    '<div data-testid="carousel">Mock Carousel: {{carouselHeader}} - Items: {{carouselItems?.length || 0}} - Index: {{carouselIndex}}</div>'
 })
 class MockCarouselComponent {
   @Input() carouselHeader: string = ''
   @Input() carouselItems: ProcessedCarouselItem[] = []
+  @Input() carouselIndex: number = 0
 }
 
 describe('AppComponent', () => {
@@ -171,6 +172,7 @@ describe('AppComponent', () => {
       expect(carouselComponents[0].componentInstance.carouselItems).toEqual(
         mockCarousels[0].items
       )
+      expect(carouselComponents[0].componentInstance.carouselIndex).toBe(0)
 
       expect(carouselComponents[1].componentInstance.carouselHeader).toBe(
         'Test Carousel 2'
@@ -178,6 +180,7 @@ describe('AppComponent', () => {
       expect(carouselComponents[1].componentInstance.carouselItems).toEqual(
         mockCarousels[1].items
       )
+      expect(carouselComponents[1].componentInstance.carouselIndex).toBe(1)
     })
 
     it('should show loading state when no carousels are available', () => {

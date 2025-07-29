@@ -20,6 +20,7 @@ import { ProcessedCarouselItem } from '../../interfaces/api.interface'
 export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
   @Input() carouselHeader = ''
   @Input() carouselItems: ProcessedCarouselItem[] = []
+  @Input() carouselIndex = 0 // Index of this carousel in the sequence
 
   items: CarouselItem[] = []
   anchorItemIndex = 0
@@ -306,14 +307,18 @@ export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
   // Tab navigation helpers
   getLeftButtonTabIndex(): number {
     // Left button gets tabindex 1 when it exists (first in tab order)
-    return this.canScrollLeft ? 1 : -1
+    if (!this.canScrollLeft) return -1
+    // Each carousel reserves 10 tab indices (1 left + 7 max items + 1 right + 1 buffer)
+    return this.carouselIndex * 10 + 1
   }
 
   getRightButtonTabIndex(): number {
     // Right button gets tabindex based on how many items are tabbable
+    if (!this.canScrollRight) return -1
     const visibleTabbableItems = this.getVisibleTabbableItems().length
-    const baseIndex = this.canScrollLeft ? 2 : 1 // Start after left button if it exists
-    return this.canScrollRight ? baseIndex + visibleTabbableItems : -1
+    const baseIndex = this.carouselIndex * 10 + 1 // Start of this carousel's range
+    const leftButtonOffset = this.canScrollLeft ? 1 : 0 // Add 1 if left button exists
+    return baseIndex + leftButtonOffset + visibleTabbableItems
   }
 
   getItemTabIndex(itemIndex: number): number {
@@ -325,8 +330,9 @@ export class CarouselComponent implements OnInit, OnDestroy, OnChanges {
       return -1 // Item is not tabbable (dimmed/preview item)
     }
 
-    const baseIndex = this.canScrollLeft ? 2 : 1 // Start after left button if it exists
-    return baseIndex + itemIndexInTabbable
+    const baseIndex = this.carouselIndex * 10 + 1 // Start of this carousel's range
+    const leftButtonOffset = this.canScrollLeft ? 1 : 0 // Add 1 if left button exists
+    return baseIndex + leftButtonOffset + itemIndexInTabbable
   }
 
   private getVisibleTabbableItems(): number[] {
