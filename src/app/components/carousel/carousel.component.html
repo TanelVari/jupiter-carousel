@@ -49,11 +49,9 @@
     <div class="relative flex h-full items-center overflow-hidden">
       <!-- Single carousel ribbon with all items including previews -->
       <div
-        class="flex transition-all duration-500 ease-in-out h-full items-center px-4 md:px-8"
-        [style.gap.px]="itemGap / (itemsPerPage - 1)"
-        [style.margin-left]="
-          canScrollLeft ? 'calc(-' + getItemWidth() + ' * 0.6)' : '0'
-        "
+        class="flex transition-transform duration-500 ease-in-out h-full items-center px-4 md:px-8"
+        [style.gap.px]="itemGap"
+        [style.transform]="getCarouselTransform()"
       >
         <div
           *ngFor="let item of visibleItems; let i = index"

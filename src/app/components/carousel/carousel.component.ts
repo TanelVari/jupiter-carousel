@@ -24,6 +24,10 @@ export class CarouselComponent implements OnInit, OnDestroy {
   containerPadding = 64 // px-4 md:px-8 -> 32px on each side on desktop
   itemGap = 24
 
+  // Cache calculations to prevent jumpy behavior
+  private cachedItemWidth = 0
+  private cachedTranslateX = 0
+
   private destroy$ = new Subject<void>()
 
   constructor(
@@ -37,6 +41,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
     this.items$.pipe(takeUntil(this.destroy$)).subscribe(items => {
       this.items = items
       this.currentPage = 0 // Reset to first page when items change
+      this.updateCachedValues() // Recalculate cached values
       this.cdr.detectChanges()
     })
 
@@ -54,6 +59,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   onResize(): void {
     this.updateItemsPerPage()
     this.updateCSSVariables()
+    this.updateCachedValues() // Recalculate cached values on resize
     this.cdr.detectChanges()
   }
 
@@ -89,6 +95,54 @@ export class CarouselComponent implements OnInit, OnDestroy {
       this.containerPadding = 64
       this.itemGap = 24
     }
+
+    // Recalculate cached values when screen size changes
+    this.updateCachedValues()
+  }
+
+  private updateCachedValues(): void {
+    this.cachedItemWidth = this.calculateItemWidth()
+    this.cachedTranslateX = this.calculateTranslateX()
+  }
+
+  private calculateItemWidth(): number {
+    const viewportWidth = window.innerWidth
+    const totalPadding = this.containerPadding
+
+    // Calculate gaps for the main itemsPerPage items
+    // We need (itemsPerPage - 1) gaps between the main items
+    const mainItemGaps = this.itemGap * (this.itemsPerPage - 1)
+
+    // Reserve space for potential preview items
+    // Left preview: needs space + gap, Right preview: needs space + gap
+    let previewSpace = 0
+    if (this.items.length > this.itemsPerPage) {
+      // We might have preview items, so reserve some space
+      // This is an estimate - we'll fine-tune if needed
+      previewSpace = this.itemGap * 2 // Space for gaps to preview items
+    }
+
+    const availableWidth =
+      viewportWidth - totalPadding - mainItemGaps - previewSpace
+    return availableWidth / this.itemsPerPage
+  }
+
+  private calculateTranslateX(): number {
+    // Each page translation should move exactly itemsPerPage items
+    // Translation = currentPage * (itemWidth + gap) * itemsPerPage
+    const itemWithGap = this.cachedItemWidth + this.itemGap
+    const pageTranslation = itemWithGap * this.itemsPerPage
+
+    // Base translation: move left by currentPage amount
+    let translateX = -(this.currentPage * pageTranslation)
+
+    // If we can scroll left, shift slightly right to show the left preview item
+    if (this.canScrollLeft) {
+      // Show about 40% of the left preview item
+      translateX += this.cachedItemWidth * 0.4
+    }
+
+    return translateX
   }
 
   private updateCSSVariables(): void {
@@ -99,14 +153,13 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   getItemWidth(): string {
-    // Simple calculation without complex preview item accounting
-    const viewportWidth = window.innerWidth
-    const totalPadding = this.containerPadding
-    const totalGaps = this.itemGap * (this.itemsPerPage - 1)
-    const availableWidth = viewportWidth - totalPadding - totalGaps
-    const itemWidth = availableWidth / this.itemsPerPage
+    return `${this.cachedItemWidth}px`
+  }
 
-    return `${itemWidth}px`
+  getCarouselTransform(): string {
+    // Update transform when page changes
+    this.cachedTranslateX = this.calculateTranslateX()
+    return `translateX(${this.cachedTranslateX}px)`
   }
 
   getImageUrl(item: CarouselItem): string {
@@ -132,42 +185,32 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   get visibleItems(): CarouselItem[] {
-    const startIndex = this.currentPage * this.itemsPerPage
-    const endIndex = startIndex + this.itemsPerPage
-    let items: CarouselItem[] = []
-
-    // Add left preview item if available (part of the ribbon)
-    if (this.canScrollLeft && startIndex > 0) {
-      items.push(this.items[startIndex - 1])
-    }
-
-    // Add main page items
-    items = items.concat(this.items.slice(startIndex, endIndex))
-
-    // Add right preview item if available (part of the ribbon)
-    if (endIndex < this.items.length) {
-      items.push(this.items[endIndex])
-    }
-
-    return items
+    // Return ALL items - the ribbon will show all items and translate to show different sections
+    return this.items
   }
 
   getItemOpacity(index: number): boolean {
-    const hasLeftPreview = this.canScrollLeft
-    const hasRightPreview =
-      (this.currentPage + 1) * this.itemsPerPage < this.items.length
+    // Calculate which items should be dimmed based on current page
+    const currentPageStart = this.currentPage * this.itemsPerPage
+    const currentPageEnd = currentPageStart + this.itemsPerPage - 1
 
-    // First item is dimmed if it's a left preview
-    if (hasLeftPreview && index === 0) {
+    // Main items (itemsPerPage count) are never dimmed
+    if (index >= currentPageStart && index <= currentPageEnd) {
+      return false
+    }
+
+    // Left preview item (if exists and we can scroll left)
+    const leftPreviewIndex = this.canScrollLeft ? currentPageStart - 1 : -1
+
+    // Right preview item (if exists and we can scroll right)
+    const rightPreviewIndex = this.canScrollRight ? currentPageEnd + 1 : -1
+
+    // Dim only the preview items
+    if (index === leftPreviewIndex || index === rightPreviewIndex) {
       return true
     }
 
-    // Last item is dimmed if it's a right preview
-    const totalItems = this.visibleItems.length
-    if (hasRightPreview && index === totalItems - 1) {
-      return true
-    }
-
+    // All other items are not visible/relevant for current view
     return false
   }
 
@@ -202,18 +245,21 @@ export class CarouselComponent implements OnInit, OnDestroy {
   scrollLeft(): void {
     if (this.canScrollLeft) {
       this.currentPage--
+      this.updateCachedValues() // Recalculate for smooth transition
     }
   }
 
   scrollRight(): void {
     if (this.canScrollRight) {
       this.currentPage++
+      this.updateCachedValues() // Recalculate for smooth transition
     }
   }
 
   goToPage(pageIndex: number): void {
     if (pageIndex >= 0 && pageIndex < this.totalPages) {
       this.currentPage = pageIndex
+      this.updateCachedValues() // Recalculate for smooth transition
     }
   }
 }
