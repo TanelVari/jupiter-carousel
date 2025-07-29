@@ -12,6 +12,7 @@ import {
   providedIn: 'root'
 })
 export class ApiService {
+  // TODO: implement different endpoint dev and prod env's
   private readonly API_URL =
     'https://services.err.ee/api/v2/category/getByUrl?url=video&domain=jupiter.err.ee'
 
